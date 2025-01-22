@@ -1,0 +1,36 @@
+~~~~~~~~~~~~~subjects [ [0m[32m"WEEKND.p1.>"[0m[0m[0m[2m,[0m [0m[32m"WEEKND.p2.>"[0m[0m[0m[2m,[0m [0m[32m"WEEKND.default.>"[0m[0m ]
+[2025-01-22T11:49:27.067Z] INFO  node-1/BROKER: Moleculer v0.14.35 is starting...
+[2025-01-22T11:49:27.067Z] INFO  node-1/BROKER: Namespace: WEEKND
+[2025-01-22T11:49:27.067Z] INFO  node-1/BROKER: Node ID: node-1
+[2025-01-22T11:49:27.068Z] INFO  node-1/REGISTRY: Strategy: RoundRobinStrategy
+[2025-01-22T11:49:27.068Z] INFO  node-1/REGISTRY: Discoverer: LocalDiscoverer
+[2025-01-22T11:49:27.069Z] INFO  node-1/BROKER  : Serializer: JSONSerializer
+[2025-01-22T11:49:27.071Z] INFO  node-1/BROKER  : Validator: FastestValidator
+[2025-01-22T11:49:27.071Z] INFO  node-1/TRACER  : Tracing: Enabled
+[2025-01-22T11:49:27.071Z] INFO  node-1/TRACER  : Tracing exporter: ConsoleTraceExporter
+[2025-01-22T11:49:27.072Z] INFO  node-1/BROKER  : Registered 14 middleware(s).
+[2025-01-22T11:49:27.073Z] INFO  node-1/TRANSPORTER: NATS lib version: 2.29.1
+[2025-01-22T11:49:27.073Z] INFO  node-1/BROKER     : Transporter: NatsTransporter
+[2025-01-22T11:49:27.079Z] INFO  node-1/CHANNELS   : Channel consumer name: node-1
+[2025-01-22T11:49:27.079Z] INFO  node-1/CHANNELS   : Channel prefix: WEEKND
+[2025-01-22T11:49:27.079Z] INFO  node-1/CHANNELS   : Channel serializer: JSONSerializer
+Connected to MongoDB
+[2025-01-22T11:49:27.135Z] INFO  node-1/TRANSIT                                : Connecting to the transporter...
+[2025-01-22T11:49:27.155Z] INFO  node-1/TRANSPORTER                            : NATS client v2 is connected.
+[2025-01-22T11:49:27.645Z] INFO  node-1/REGISTRY                               : '$node' service is registered.
+[2025-01-22T11:49:27.645Z] INFO  node-1/REGISTRY                               : 'calendar' service is registered.
+[2025-01-22T11:49:27.645Z] INFO  node-1/REGISTRY                               : 'cron.manager' service is registered.
+[2025-01-22T11:49:27.647Z] INFO  node-1/REGISTRY                               : 'kiotp.plugins.general.rulesengine' service is registered.
+[2025-01-22T11:49:27.647Z] INFO  node-1/$NODE                                  : Service '$node' started.
+[2025-01-22T11:49:27.647Z] INFO  node-1/V1.CALENDAR                            : Service 'v1.calendar' started.
+[2025-01-22T11:49:27.647Z] INFO  node-1/CRON.MANAGER                           : Service 'cron.manager' started.
+[2025-01-22T11:49:27.647Z] INFO  node-1/1.0.0.KIOTP.PLUGINS.GENERAL.RULESENGINE: Service '1.0.0.kiotp.plugins.general.rulesengine' started.
+[2025-01-22T11:49:27.647Z] INFO  node-1/CHANNELS                               : Channel adapter is connecting...
+[2025-01-22T11:49:27.653Z] INFO  node-1/CHANNELS                               : Subscribing to 2 channels...
+[2025-01-22T11:49:27.661Z] INFO  node-1/BROKER                                 : ✔ ServiceBroker with 4 service(s) started successfully in 526ms.
+Job logsevery15Minutes added with schedule: */15 * * * *
+[2025-01-22T11:49:27.664Z] INFO  node-1/TRACER                                 : ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+[2025-01-22T11:49:27.664Z] INFO  node-1/TRACER                                 : │ ID: f999b8fc-0b80-4768-a2cd-c46e0624de24                                       Depth: 1 Total: 1 │
+[2025-01-22T11:49:27.664Z] INFO  node-1/TRACER                                 : ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+[2025-01-22T11:49:27.665Z] INFO  node-1/TRACER                                 : │ action 'cron.manager.addJob'                      1ms [■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■] │
+[2025-01-22T11:49:27.665Z] INFO  node-1/TRACER                                 : └──────────────────────────────────────────────────────────────────────────────────────────────────┘

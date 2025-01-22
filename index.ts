@@ -5,6 +5,7 @@ import CronManager from "./plugin-cron-manager";
 import { connectToDatabase } from "./model";
 import { v4 as uuidv4 } from 'uuid';
 import { brokerConfig } from "./moleculer.config";
+import type { JobInfo } from "./types";
 const broker = new ServiceBroker(brokerConfig);
 
 broker.createService(RulesEngineService);
@@ -141,13 +142,25 @@ const rule2 = {
     }
 }
 
-async function main(){
-    await broker.start()
-    await broker.waitForServices("1.0.0.kiotp.plugins.general.rulesengine")
-    broker.sendToChannel("p2.rule.added",rule1)
-    broker.sendToChannel("p2.rule.added",rule2)
-    broker.sendToChannel("p2.facts.state.changed",rule1)
-    console.log("The, Worrdo!")
-}
-
-main()
+// async function main(){
+//     await broker.start()
+//     await broker.waitForServices("1.0.0.kiotp.plugins.general.rulesengine")
+//     broker.sendToChannel("p2.rule.added",rule1)
+//     broker.sendToChannel("p2.rule.added",rule2)
+//     broker.sendToChannel("p2.facts.state.changed",rule1)
+//     console.log("The, Worrdo!")
+// }
+broker.start()
+.then(()=>{
+    broker.call("cron.manager.addJob",{
+        id:"logsevery15Minutes",
+        cronExpression:"*/15 * * * *",
+        taskFunction: ()=>{
+            console.log("This message is logged every 15 minutes starting from 00:00")
+            broker.sendToChannel("p2.facts.state.changed",{facts:["time"]})
+        }
+    })
+})
+.catch(err =>{
+    console.error("Error starting broker:", err)
+})

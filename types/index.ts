@@ -1,3 +1,4 @@
+import cron from "node-cron"
 export declare enum PluginTypes {
     CORE_PLUGIN = "CORE_PLUGIN",
     DEVICE_PLUGIN = "DEVICE_PLUGIN",
@@ -37,4 +38,9 @@ export declare namespace IPluginConfig {
         BOOL = "bool",
         STRING = "string"
     }
+}
+export interface JobInfo {
+  task: cron.ScheduledTask;
+  cronExpression: string;
+  taskFunction: () => void;
 }

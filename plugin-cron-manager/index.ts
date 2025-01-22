@@ -1,8 +1,9 @@
 import cron from 'node-cron';
 import type { ScheduledTask } from 'node-cron';
-import { ServiceBroker, Service } from 'moleculer';
+import { ServiceBroker, Service, Context } from 'moleculer';
 //whenver you are adding a job, you also need to add when this job should end
 interface JobInfo {
+  id: string,
   task: ScheduledTask;
   cronExpression: string;
   taskFunction: () => void;
@@ -17,13 +18,13 @@ export class CronManager extends Service{
     super(broker);
     this.jobs = {};
     this.parseServiceSchema({
-      name:"cron-manager",
-      version : 0,
+      name:"cron.manager",
       actions:{
         addJob : this.addJob,
         removeJob : this.removeJob,
         rescheduleJob : this.rescheduleJob,
-        listJobs : this.listJobs
+        listJobs : this.listJobs,
+        periodicEventEmission: this.periodEventEmission,
       }
     })
   }
@@ -36,19 +37,22 @@ export class CronManager extends Service{
    * @returns `true` if the job was added, `false` if the ID already exists.
    * @throws Error if the cron expression is invalid
    */
-  addJob(id: string, cronExpression: string, taskFunction: () => void): boolean {
+  addJob(ctx: Context): boolean {
+    const {id,cronExpression,taskFunction} = <JobInfo>ctx.params;
     if (this.jobs[id]) {
       console.log(`Job with ID ${id} already exists.`);
       return false;
     }
 
     if (!cron.validate(cronExpression)) {
+      console.error(cronExpression)
       throw new Error(`Invalid cron expression: ${cronExpression}`);
     }
 
     try {
       const task = cron.schedule(cronExpression, taskFunction);
       this.jobs[id] = {
+        id,
         task,
         cronExpression,
         taskFunction
@@ -101,6 +105,7 @@ export class CronManager extends Service{
       jobInfo.task.stop();
       const newTask = cron.schedule(newCronExpression, jobInfo.taskFunction);
       this.jobs[id] = {
+        id,
         task: newTask,
         cronExpression: newCronExpression,
         taskFunction: jobInfo.taskFunction
@@ -121,6 +126,13 @@ export class CronManager extends Service{
     for (const [id, jobInfo] of Object.entries(this.jobs)) {
       console.log(`- Job ID: ${id}, Schedule: ${jobInfo.cronExpression}`);
     }
+  }
+
+  async periodEventEmission(ctx: Context){
+    const cronExpression = "* * * * *"
+    // const cronExpression = "0,15,30,45 * * * *"
+    console.log("Constant Event Emission every 15 minutes")
+    ctx.broker.emit("p2.facts.state.changed",{facts:["time"]})
   }
 }
 
