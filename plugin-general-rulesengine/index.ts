@@ -15,21 +15,13 @@ import { _RulesEngine } from "./rules-engine";
 import type { IAction } from "./models/kiotp_rules_engine_model";
 import { GetFactsTriggerAction } from "./actions/get-facts-triggers";
 import { AddRuleAction } from "./actions/manage-rules/rules";
-
+import { GetVersionStr } from "../types";
 export const AsyncDelay = function(delay: number) {
     return new Promise(function(resolve) {
         setTimeout(function() {
             resolve({});
         }, delay)
     });
-}
-export interface VersionObject {
-    MAJOR: number;
-    MINOR: number;
-    PATCH: number;
-}
-export const GetVersionStr = function(versionObj: VersionObject) {
-    return `${versionObj.MAJOR}.${versionObj.MINOR}.${versionObj.PATCH}`;
 }
 
 export class RulesEngineService extends Service {

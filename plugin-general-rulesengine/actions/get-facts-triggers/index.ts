@@ -1,14 +1,5 @@
 import { Context } from "moleculer";
-export namespace IGetFactsTriggerAction {
-    export interface Request {
-    }
-
-    export interface Response {
-        success: boolean;
-        data: Array<any>
-    }
-}
-
+import type { IGetFactsTriggerAction } from "../../../types";
 class GetFactsTriggerAction {
     static params = {
     }

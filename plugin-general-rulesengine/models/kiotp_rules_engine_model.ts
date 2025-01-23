@@ -12,12 +12,12 @@ interface ICondition extends Document {
   id: string;
   operation: string;
   name: string;
-  eventId: string;
+  eventId: string; //which is this eventID, is this the eventId of the event that belongs to this rule, or the one that triggers it 
   type: string;
   factName: string;
   factValue?: any;
   factObject?: Record<string, any>;
-  factStateAction?: string;
+  factStateAction?: string; //we can include params here
   factPath?: string;
   serviceId: string;
 }

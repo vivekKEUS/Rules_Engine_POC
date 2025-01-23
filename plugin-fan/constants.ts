@@ -16,6 +16,58 @@ export enum Triggers {
     MODE = "p2.fan-mode-change"
 }
 
-export const POWER = ["on", "off"];
-export const SPEEDS = ["low", "medium", "high"];
-export const MODES = ["normal", "sleep", "turbo"];
+export enum POWER {
+    ON = "on",
+    OFF = "off"
+}
+
+export enum SPEEDS {
+    LOW = "low",
+    MEDIUM = "medium",
+    HIGH = "high"
+}
+
+export enum MODES {
+    NORMAL = "normal",
+    SLEEP = "sleep",
+    TURBO = "turbo"
+}
+
+export const FACTS_AND_TRIGGERS = [
+    {
+        TRIGGERS: [
+            {
+                displayName: "Change Fan Power State",
+                eventName: EVENTS.TRIGGER_FAN_SPEED_CHANGE, //Event Name 
+                executionStrategy: 'durable', // 'durable' or 'fireAndForget'
+                params: {
+                    deviceId: ""
+                }
+            },
+            {
+                displayName: "Change Fan Speed",
+                eventName: EVENTS.TRIGGER_FAN_SPEED_CHANGE,
+                executionStrategy: 'durable',
+                params: {
+                    deviceId: "",
+                    speedLevel: "", //used for changing SPEED
+                }
+            },
+            {
+                displayName: "Change Fan Mode",
+                eventName: EVENTS.TRIGGER_FAN_MODE_CHANGE,
+                executionStrategy: 'durable',
+                params: {
+                    deviceId: "",
+                    modeName: "",
+                }
+            }
+        ],
+    }, {
+        FACTS: [
+            FACTS.FAN_STATE,
+            FACTS.SPEED,
+            FACTS.MODE
+        ]
+    }
+]

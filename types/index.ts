@@ -39,8 +39,30 @@ export declare namespace IPluginConfig {
         STRING = "string"
     }
 }
+export interface VersionObject {
+    MAJOR: number;
+    MINOR: number;
+    PATCH: number;
+}
 export interface JobInfo {
-  task: cron.ScheduledTask;
-  cronExpression: string;
-  taskFunction: () => void;
+    task: cron.ScheduledTask;
+    cronExpression: string;
+    taskFunction: () => void;
+}
+export const GetVersionStr = function (versionObj: VersionObject) {
+    return `${versionObj.MAJOR}.${versionObj.MINOR}.${versionObj.PATCH}`;
+}
+export namespace IGetFactsTriggerAction {
+    export interface Request {
+    }
+
+    export interface Response {
+        success: boolean;
+        data: Array<any>
+    }
+}
+export interface IResponse<Data = any> {
+    success: boolean;
+    error?: string;
+    data?: Data;
 }

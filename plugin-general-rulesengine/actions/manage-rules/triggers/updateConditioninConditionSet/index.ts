@@ -1,6 +1,5 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../../models/kiotp_rules_engine_model";
-import { RulesDB } from "../../../../database/connect";
 import { _RulesManager } from "../../../../helpers/rules-engine-helper";
 // import { RulesEngineManager } from "../../../../rules-engine";
 import {sendLiveEvent} from "../../../../utils"
@@ -8,7 +7,7 @@ import {sendLiveEvent} from "../../../../utils"
 export namespace IUpdateConditionInConditionSetAction {
   export interface Request {
     conditionSetId: string;
-    condition: RulesDbModels.KIOTP_RULES_ENGINE_CONDITION;
+    condition: RulesDbModels.IRuleConditions;
   }
 
   export interface Response<Data = any> {

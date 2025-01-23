@@ -1,6 +1,5 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../../models/kiotp_rules_engine_model";
-import { RulesDB } from "../../../../database/connect";
 import { _RulesManager } from "../../../../helpers/rules-engine-helper";
 import {sendLiveEvent} from "../../../../utils"
 
