@@ -246,39 +246,24 @@ const rule4 = {
         }]
     }],
     "event": {
-        "type": "Relaxed Mode Automation",
-        "id": "RelaxedModeAutomation",
+        "type": "Fan On Automation",
+        "id": "FanOnAutomation",
         "params": {
             "actions": [
                 {
                     "id": uuidv4(),
                     "type": "automation",
-                    "name": "Relaxed Lighting",
+                    "name": "Fan Turning On Automation",
                     "strategy": "durable",
                     "waitTillCompletion": false,
                     "actionData": {
-                        "serviceId": "LightingService",
-                        "emitTriggerAction": "openCurtains",
+                        "serviceId": "FanService",
+                        "emitTriggerAction": "p2.trigger-fan-state-change",
                         "customActionData": {
-                            "message": "Turn on Relaxed Lighting",
-                            "data": ["device-1", "device-2", "device-3"]
+                            "deviceId": "device-1"
                         }
                     }
                 },
-                {
-                    "id": uuidv4(),
-                    "type": "automation",
-                    "name": "Turn On Lights",
-                    "strategy": "durable",
-                    "waitTillCompletion": false,
-                    "actionData": {
-                        "serviceId": "lightService",
-                        "emitTriggerAction": "turnOnLights",
-                        "customActionData": {
-                            "message": "Turn On Lights"
-                        }
-                    }
-                }
             ]
         }
     }

@@ -1,0 +1,221 @@
+{
+    "success": true,
+    "data": [
+        {
+            "id": "6792021ef88a947c8018aaef",
+            "name": "All off",
+            "description": "",
+            "conditions": [
+                [
+                    {
+                        "id": "0",
+                        "operation": "equal",
+                        "name": "Execute ambience scene|All off",
+                        "eventId": "3PsWpGjXvC-150",
+                        "type": "SCENE",
+                        "factName": "mainhub-current-scene-state",
+                        "factValue": "3PsWpGjXvC-150",
+                        "factObject": {},
+                        "factStateAction": "GetCurrentScene",
+                        "factPath": null,
+                        "serviceId": "kiotp.plugins.general.hubbridge"
+                    }
+                ]
+            ],
+            "event": {
+                "type": "rule",
+                "params": {
+                    "routines": [
+                        {
+                            "id": "0",
+                            "type": "ACTION",
+                            "name": "Execute media scene|All off",
+                            "strategy": null,
+                            "maxTimeDifferenceMs": null,
+                            "waitTillCompletion": true,
+                            "actionData": {
+                                "serviceId": "",
+                                "emitTriggerAction": "p1.trigger-deepmedia-scene-state-change",
+                                "deviceType": null,
+                                "devcieCategory": null,
+                                "customActionData": {
+                                    "sceneId": "677ea975a03b40c8d146132b"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "enabled": true,
+            "roomId": "3PsWpGjXvC",
+            "conditionIds": [
+                "1"
+            ],
+            "conditionSetNames": [
+                "set-1"
+            ]
+        },
+        {
+            "id": "67923054ab90c255c4b577ab",
+            "name": "Pause",
+            "description": "",
+            "conditions": [
+                [
+                    {
+                        "id": "0",
+                        "operation": "equal",
+                        "name": "sl|When content is paused",
+                        "eventId": "6792302b634bd2988a3a35d5",
+                        "type": "STATE",
+                        "factName": "appletv-playing-state",
+                        "factValue": "paused",
+                        "factObject": {},
+                        "factStateAction": "GetPlayFactState",
+                        "factPath": null,
+                        "serviceId": "kiotp.plugins.core.deepmedia.tv.appletv"
+                    }
+                ]
+            ],
+            "event": {
+                "type": "rule",
+                "params": {
+                    "routines": [
+                        {
+                            "id": "0",
+                            "type": "ACTION",
+                            "name": "Execute ambience scene|Bright",
+                            "strategy": null,
+                            "maxTimeDifferenceMs": null,
+                            "waitTillCompletion": true,
+                            "actionData": {
+                                "serviceId": "",
+                                "emitTriggerAction": "p1.trigger-mainhub-scene-state-change",
+                                "deviceType": null,
+                                "devcieCategory": null,
+                                "customActionData": {
+                                    "sceneId": "8ECsRiSXOw-151"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "enabled": true,
+            "roomId": "8ECsRiSXOw",
+            "conditionIds": [
+                "1"
+            ],
+            "conditionSetNames": [
+                "set-1"
+            ]
+        },
+        {
+            "id": "67923066ab90c255c4b577ac",
+            "name": "Play",
+            "description": "",
+            "conditions": [
+                [
+                    {
+                        "id": "0",
+                        "operation": "equal",
+                        "name": "sl|When content is playing",
+                        "eventId": "6792302b634bd2988a3a35d5",
+                        "type": "STATE",
+                        "factName": "appletv-playing-state",
+                        "factValue": "playing",
+                        "factObject": {},
+                        "factStateAction": "GetPlayFactState",
+                        "factPath": null,
+                        "serviceId": "kiotp.plugins.core.deepmedia.tv.appletv"
+                    }
+                ]
+            ],
+            "event": {
+                "type": "rule",
+                "params": {
+                    "routines": [
+                        {
+                            "id": "0",
+                            "type": "ACTION",
+                            "name": "Execute ambience scene|All off",
+                            "strategy": null,
+                            "maxTimeDifferenceMs": null,
+                            "waitTillCompletion": true,
+                            "actionData": {
+                                "serviceId": "",
+                                "emitTriggerAction": "p1.trigger-mainhub-scene-state-change",
+                                "deviceType": null,
+                                "devcieCategory": null,
+                                "customActionData": {
+                                    "sceneId": "8ECsRiSXOw-150"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "enabled": true,
+            "roomId": "8ECsRiSXOw",
+            "conditionIds": [
+                "1"
+            ],
+            "conditionSetNames": [
+                "set-1"
+            ]
+        },
+        {
+            "id": "679231c9ab90c255c4b577ad",
+            "name": "Party",
+            "description": "",
+            "conditions": [
+                [
+                    {
+                        "id": "0",
+                        "operation": "equal",
+                        "name": "Execute ambience scene|Party",
+                        "eventId": "3PsWpGjXvC-176",
+                        "type": "SCENE",
+                        "factName": "mainhub-current-scene-state",
+                        "factValue": "3PsWpGjXvC-176",
+                        "factObject": {},
+                        "factStateAction": "GetCurrentScene",
+                        "factPath": null,
+                        "serviceId": "kiotp.plugins.general.hubbridge"
+                    }
+                ]
+            ],
+            "event": {
+                "type": "rule",
+                "params": {
+                    "routines": [
+                        {
+                            "id": "0",
+                            "type": "ACTION",
+                            "name": "Execute media scene|Party",
+                            "strategy": null,
+                            "maxTimeDifferenceMs": null,
+                            "waitTillCompletion": true,
+                            "actionData": {
+                                "serviceId": "",
+                                "emitTriggerAction": "p1.trigger-deepmedia-scene-state-change",
+                                "deviceType": null,
+                                "devcieCategory": null,
+                                "customActionData": {
+                                    "sceneId": "67920fe4634bd2988a3a35d2"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "enabled": true,
+            "roomId": "3PsWpGjXvC",
+            "conditionIds": [
+                "1"
+            ],
+            "conditionSetNames": [
+                "set-1"
+            ]
+        }
+    ]
+}

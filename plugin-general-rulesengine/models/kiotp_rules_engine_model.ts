@@ -123,7 +123,7 @@ const RuleSchema = new Schema<IRule>({
   priority: {type: Number, default: 1}
 });
 export async function RulesDB(){
-  // await mongoose.connect('mongodb://localhost:27017/calenderDB');
+  await mongoose.connect('mongodb://localhost:27017/calenderDB');
 }
 const Rule = mongoose.model<IRule>('Rule', RuleSchema);
 

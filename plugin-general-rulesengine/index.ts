@@ -179,21 +179,21 @@ export class RulesEngineService extends Service {
           }
         }
       },
-      // created: this.serviceCreated,
-      // started: this.serviceStarted,
-      // stopped: this.serviceStopped,
+      created: this.serviceCreated,
+      started: this.serviceStarted,
+      stopped: this.serviceStopped,
     });
   }
 
   async serviceCreated() {
     this.logger.info(`${PluginConfig.NAME} Created`);
-
-    try {
-      await RulesDB();
     console.log("RULES DB STARTED");
-    } catch (error) {
-      console.log("RULES DB ERROR", error);
-    }
+    // try {
+    //   // await RulesDB();
+    // console.log("RULES DB STARTED");
+    // } catch (error) {
+    //   console.log("RULES DB ERROR", error);
+    // }
     // await RulesEngineManager.setUpRuleEngines(this.broker);
     _RulesManager.init(this.broker);
     // let siteBroker = await startBridge(this.broker)
@@ -201,6 +201,7 @@ export class RulesEngineService extends Service {
 
   async serviceStarted() {
     this.logger.info(`${PluginConfig.NAME} Started`);
+    console.log("Service Started for Rules Engine")
     // await this.broker.waitForServices(`${DeepmediaId}`)
     //INFO: timer store commeted for tempory test
     // setTimeout(() => {
