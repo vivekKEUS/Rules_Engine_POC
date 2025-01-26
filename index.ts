@@ -300,7 +300,8 @@ const rule5 = {
                 "EndDate": "2030-01-01",
                 "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId": "PlaceHolderCalenderService"
+            "serviceId": "calender", //service from which we will get the current fact's value
+            "factStateAction": "currentTime", //returns time in 24 hours format
         }]
     },{
         "id" : "FanAutomationConditionSet2",
@@ -318,7 +319,8 @@ const rule5 = {
                 "EndDate":"2030-01-01",
                 "RecurrentPattern":"MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId":"PlaceHolderCalendarService"
+            "serviceId":"calender",
+            "factStateAction": "currentTime",
         }]
     }],
     "event": {
@@ -378,3 +380,4 @@ broker.start()
   .catch((err) => {
     console.error("Error starting broker:", err);
   });
+

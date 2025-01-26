@@ -27,26 +27,30 @@ class GetRulesAction {
 
   static async handler(): Promise<IGetRulesAction.Response> {
     try {
-      let rules = (await RulesDbModels.RuleMethods.getRules()).data;
+      let rules = (await RulesDbModels.RuleMethods.getRules()).data; //gives out an array as output
+      console.log("get rules res", rules)
 
-      // console.log("get rules res", rules)
+      // for (let i = 0; i < rules.length; i++) {
+      //   let rule = rules[i];
 
-      for (let i = 0; i < rules.length; i++) {
-        let rule = rules[i];
-
-        rule["conditionIds"] = [];
-        let conditions:any = []
-        rule["conditionSetNames"] = [];
+      //   rule["conditionSetIds"] = [];
+      //   let conditions:any = []
+      //   rule["conditionSetNames"] = [];
         
-        for (const condition of rule?.conditions) {
-          conditions.push(condition?.conditions)
-          rule.conditionIds.push(condition?.id)
-          rule.conditionSetNames.push(condition?.name)
-        }
-        rules[i] = rule;
-        rule.conditions = conditions;
-      }
-
+      //   for (const conditionSet of rule?.conditions) {
+      //     //here condition are conditionSets
+      //     //anyone condition of the conditionSet need to be true,
+      //     //for it to be evaluated as true
+      //     console.log("COONDition", conditionSet)
+      //     conditions.push(conditionSet?.conditions)
+      //     rule.conditionSetIds.push(conditionSet?.id)
+      //     rule.conditionSetNames.push(conditionSet?.name)
+      //   }
+      //   rules[i] = rule;
+      //   //my doubt is why are we aggregating all the conditions of the conditionSet ?
+      //   rule.conditions = conditions;
+      // }
+      // console.log(`parsed rules = ${rules}`)
       return { success: true, data: rules };
     } catch (err) {
       return {

@@ -68,11 +68,6 @@ export class RulesEngineService extends Service {
         RemoveAction: RuleActionManager.RemoveActionFromRuleAction.handler,
         UpdateAction: RuleActionManager.UpdateActionInRuleAction.handler,
         GetTriggers: GetFactsTriggerAction.handler,
-        PublishDummyEvent: (ctx) => {
-          //   ctx.broker.emit("events.trigger.scene", { id: ctx.params?.id });
-          console.log("-------EMITTING DUMMY EVENT-----------");
-          ctx.broker.emit("p2.facts.state.changed", ctx.params);
-        },
         getMapping : RuleManager.GetMapping.handler
       },
       methods: {
@@ -164,8 +159,6 @@ export class RulesEngineService extends Service {
           // group: `${this.broker.namespace}.${PluginConfig.ID}.p2.facts.state.changed`,
           // context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
-            console.log("durable event")
-            console.log(ctx)
             console.log("------RULES ENGINE CHANNEL RECIEVED A MESSAGE-----");
             //@ts-ignore
             this.factChangeEventHandler(ctx);

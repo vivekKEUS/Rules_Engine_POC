@@ -1,8 +1,9 @@
 import { Service, ServiceBroker } from "moleculer";
 import mongoose from "mongoose";
-import { CalendarEvent, connectToDatabase } from "../model";
+import { CalendarEvent } from "../model";
 import { v4 as uuidv4 } from 'uuid';
 import { parse, isValid, formatISO, addMinutes } from 'date-fns';
+import type { Context } from "@moleculer/channels/types/src/adapters/fake";
 
 class CalendarService extends Service {
   constructor(broker: ServiceBroker) {
@@ -10,12 +11,13 @@ class CalendarService extends Service {
 
     this.parseServiceSchema({
       name: "calendar",
-      version: 1,
+      version: "1.0.0",
       actions: {
         createEvent: this.createEvent,
         parseFlexibleDate: this.parseFlexibleDate,
         parseDuration: this.parseDuration,
         parseRecurrencePattern: this.parseRecurrencePattern,
+        currentTime : this.currentTime,
       },
     });
   }
@@ -103,8 +105,8 @@ class CalendarService extends Service {
 
     return totalMinutes;
   }
-  //@ts-ignore
-  parseRecurrencePattern(ctx) {
+  parseRecurrencePattern(ctx: Context) {
+    //@ts-ignore
     const input = ctx.params.input;
     const normalizedInput = input.toLowerCase().trim();
 
@@ -129,6 +131,26 @@ class CalendarService extends Service {
     };
     //@ts-ignore
     return recurrenceMap[normalizedInput] || input;
+  }
+  currentTime(ctx: Context):string {
+    // Step 1: Get current UTC time
+    const currentTimestamp = Date.now();
+    const currentDate = new Date(currentTimestamp);
+
+    // Step 2: Convert to IST (UTC + 5:30)
+    const IST_OFFSET = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
+    const ISTDate = new Date(currentDate.getTime() + IST_OFFSET);
+
+    // Step 3: Format the date to a 24-hour time string
+    const hours = ISTDate.getUTCHours();
+    const minutes = ISTDate.getUTCMinutes();
+    // const seconds = ISTDate.getUTCSeconds();
+
+    // Convert to a string in "HH:mm:ss" format
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}`;
+    return timeString;
   }
 }
 

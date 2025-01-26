@@ -14,13 +14,14 @@ is useful when you want to use an existing type but need to exclude one or more
 properties from it.
 */
 
-type TRule = Omit<RuleModels.IRule, "triggers"> & {
-  //why are we creating this, why is the need to have seperate conditionIds and 
-  //conditionSetNames
-  conditionIds: string[];
-  conditions: Array<RuleModels.ICondition[]>;
-  conditionSetNames: string[];
-};
+type TRule = RuleModels.IRule
+// type TRule = Omit<RuleModels.IRule, "triggers"> & {
+//   //why are we creating this, why is the need to have seperate conditionIds and 
+//   //conditionSetNames
+//   conditionSetIds: string[];
+//   conditions: Array<RuleModels.ICondition[]>;
+//   conditionSetNames: string[];
+// };
 
 class _RulesManager {
   static rulesMap: Map<string, _Rule> = new Map(); //mapping of rule id to rule
@@ -33,6 +34,7 @@ class _RulesManager {
 
   static async updateRules() {
     try {
+      console.log("Rules Manager trying to get all the rules")
       let rules: Array<TRule> = [];
       let rulesRes = await GetRulesAction.handler();
       if (rulesRes && !rulesRes.success) {
@@ -45,9 +47,11 @@ class _RulesManager {
       }
 
       rules = <TRule[]>rulesRes?.data;
-
-      for (const rule of rules) {
-        console.log(rule);
+      console.log(`number of rules = ${rules.length}`)
+      // console.log(rules)
+      for(let i = 0; i < rules.length; i++) {
+        const rule = rules[i]
+        console.log(rule)
         if (!rule.enabled) {
           // this.rulesMap.delete(rule.id);
           console.log("rule.enabled", rule.enabled, this.rulesMap);
@@ -55,12 +59,18 @@ class _RulesManager {
           //perhaps that part is done somwhere else
           continue;
         }
+        //need to imrpove the constructor of _Rule
         let _rule = new _Rule(rule); //_Rule contains rule, ruleproperties, eventId -> set of facts mapping
         this.rulesMap.set(rule.id, _rule);
       }
     } catch (err) {
       console.log("failed to update rules map", err);
     }
+    console.log(`Size of Rules' Hashmap =`, this.rulesMap.size);
+    //print just the conditions of the objects, I suspect that conditions are not filling up properly
+    // for(const [ruleId,_rule]  of this.rulesMap.entries()){
+    //   console.log(_rule.ruleProperties.conditions)
+    // }
   }
 
   static getDependentRulesOfFacts(facts: Array<string>) {
@@ -71,19 +81,23 @@ class _RulesManager {
     //for this rule, get all its list of set of fact
     //if we have some related fact, then add this rule(_Rule) in rules array
     for (const ruleId of this.rulesMap.keys()) {
-      let listsOfFactNames = this.rulesMap
-        .get(ruleId)
-        ?.eventIdToFactSetMap.values(); //map().values returns list of set of facts we currently have
-
+      let givenRule = this.rulesMap.get(ruleId)
+      if(givenRule == undefined){
+        return rules //here it is rules is  empty ([])
+      }
+    let listsOfFactNames = new Set(
+        Array.from(givenRule.eventIdToFactSetMap.values())
+            .flatMap(set => Array.from(set))
+    );
+      
       console.log("----CHECKING LIST OF FACTS NAMES ", listsOfFactNames);
 
       if (!listsOfFactNames) return rules;
 
       let related = false;
 
-      for (const list of listsOfFactNames) {
         for (const fact of facts) {
-          if (list.has(fact)) {
+          if (listsOfFactNames.has(fact)) {
             related = true;
             rules.push(<TRule>this.rulesMap.get(ruleId)?.rule);
             break;
@@ -93,9 +107,8 @@ class _RulesManager {
         if (related) {
           break;
         }
-      }
     }
-
+    console.log(`rules = ${rules}`)
     return rules;
   }
 
@@ -151,16 +164,11 @@ class _Rule {
 formAndGetConditions() {
     for (let i = 0; i < this.rule.conditions.length; i++) {
       const conditionSet = this.rule.conditions[i];
-
-      if (!Array.isArray(conditionSet)) {
-        // console.log("conditionSet is not an array:", conditionSet);
-        continue;
-      }
-
+      console.log(`at i = ${i}\n${conditionSet}`)
       let newCondition: NestedCondition = { any: [] };
-
-      for (const condition of conditionSet) {
+      for (const condition of conditionSet.conditions) {
         if (!condition || !condition.factName || !condition.operation) {
+          console.error("some shit is missing in conditionSet")
           continue;
         }
 
@@ -191,10 +199,9 @@ formAndGetConditions() {
         //this params can be used to calcule the value using
         eventId: condition.eventId, //eventId is the deviceId or sceneId from where the fact is being triggered
         ruleId: this.rule.id, //ruleId is the id of the rule containig this fact
-        serviceId: condition.serviceId, //serviceId is the name of service triggering the fact change event
+        serviceId: condition.serviceId, //serviceId and factState will helps us in getting the current fact-value
         factState: condition.factStateAction, //contains the name of the moleculer action which will give us the fact's current value
-        //we are not include factValue or factObject becaues they are not used for fact state calculation
-        //but they used for evaluating the conditions of the rules
+        recurrenPattern: condition.factObject,
       },
     };
 
@@ -216,6 +223,8 @@ formAndGetConditions() {
       let set = new Set<string>();
       set.add(<string>condition.factName);
       this.eventIdToFactSetMap.set(condition.eventId, set);
+      console.log(`inside eventToFactHashmap`)
+      console.log(this.eventIdToFactSetMap)
     }
   }
 

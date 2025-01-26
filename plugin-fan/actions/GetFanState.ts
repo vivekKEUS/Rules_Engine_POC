@@ -23,7 +23,7 @@ export class GetFanState {
                 data: data
             }
         } catch (err) {
-            console.log(err);
+            console.error(err);
             return {
                 success: false,
                 error: err?.toString()

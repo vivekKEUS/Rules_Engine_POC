@@ -147,6 +147,7 @@ class RuleMethods {
       if(!rules){
         return {success: false, error: "No rules found"}
       }
+      
       return {success: true, data: rules}
     } catch (error){
       //@ts-ignore
