@@ -26,13 +26,11 @@ export class FanService extends Service{
             },
             channels: {
                 "p2.trigger-fan-state-change": {
-                  async handler(ctx: Context) {
+                  async handler(ctx:Context) {
                     console.log(
                       "------FAN SERVICE RECIEVED A MESSAGE-----",
                       ctx.params
                     );
-                    //@ts-ignore
-                    // DeepMediaSceneActions.ExecuteSceneAction.handler(ctx);
                   },
                 },
                 "p2.trigger-fan-speed-change": {
@@ -49,7 +47,7 @@ export class FanService extends Service{
                   async handler(ctx: Context) {
                     console.log(
                       "------FAN MODE RECIEVED A MESSAGE-----",
-                      ctx.params
+                      ctx
                     );
                     //@ts-ignore
                     // DeepMediaSceneActions.ExecuteSceneAction.handler(ctx);

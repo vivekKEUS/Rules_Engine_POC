@@ -94,15 +94,30 @@ export class RulesEngineService extends Service {
 
               if (action.strategy == EventStrategy.FIRE_AND_FORGET) {
                 console.log("---------Emit Fire N Forget Event----------");
+                let payload:Record<string,any> = {}
+                if(action.actionData.customActionData == undefined){
+                  payload = {}
+                }else{
+                for (const [key,value] of action.actionData.customActionData.entries()){
+                  payload[key] = value;
+                }}
                 broker.emit(
                   `${action.actionData.serviceId}-${action.actionData.emitTriggerAction}`,
-                  action.actionData.customActionData || {}
+                  payload
                 );
               } else {
+
                 console.log("--------Emitting Durable Event");
+                let payload:Record<string,any> = {}
+                if(action.actionData.customActionData == undefined){
+                  payload = {}
+                }else{
+                for (const [key,value] of action.actionData.customActionData.entries()){
+                  payload[key] = value;
+                }}
                 broker.sendToChannel(
                   `${action.actionData.emitTriggerAction}`,
-                  action.actionData.customActionData || {}
+                  payload
                 );
               }
             } catch (err) {
