@@ -4,11 +4,7 @@ import { CalendarEvent } from "../model";
 import { v4 as uuidv4 } from 'uuid';
 import { parse, isValid, formatISO, addMinutes } from 'date-fns';
 import type { Context } from "@moleculer/channels/types/src/adapters/fake";
-interface Response{
-  success : boolean;
-  data?: any;
-  error?: any;
-}
+
 class CalendarService extends Service {
   constructor(broker: ServiceBroker) {
     super(broker);
@@ -136,7 +132,7 @@ class CalendarService extends Service {
     //@ts-ignore
     return recurrenceMap[normalizedInput] || input;
   }
-  currentTime(ctx: Context):Response {
+  currentTime(ctx: Context):string {
     // Step 1: Get current UTC time
     const currentTimestamp = Date.now();
     const currentDate = new Date(currentTimestamp);
@@ -151,10 +147,10 @@ class CalendarService extends Service {
     // const seconds = ISTDate.getUTCSeconds();
 
     // Convert to a string in "HH:mm:ss" format
-    // const timeString = `${hours.toString().padStart(2, '0')}:${minutes
-    //   .toString()
-    //   .padStart(2, '0')}`;
-    return {success:true, data:(100*hours+minutes)}
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}`;
+    return timeString;
   }
 }
 

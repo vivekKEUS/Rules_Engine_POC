@@ -224,7 +224,7 @@ const rule4 = {
                 "EndDate": "2030-01-01",
                 "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId": "PlaceHoldercalendarService"
+            "serviceId": "PlaceHolderCalenderService"
         }]
     },{
         "id" : "FanAutomationConditionSet2",
