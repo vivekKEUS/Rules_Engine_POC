@@ -21,7 +21,7 @@ export const getchannelsmiddleware = ({
     console.log("~~~~~~~~~~~~~subjects", subjects);
     //@ts-ignore
     return channelsmiddleware({
-        sendmethodname: "sendToStream",
+        // sendmethodname: "sendToStream",
         adapter: {
             type: "nats",
             //@ts-ignore

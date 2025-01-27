@@ -123,7 +123,7 @@ const RuleSchema = new Schema<IRule>({
   priority: {type: Number, default: 1}
 });
 export async function RulesDB(){
-  await mongoose.connect('mongodb://localhost:27017/calenderDB');
+  await mongoose.connect('mongodb://localhost:27017/calendarDB');
 }
 const Rule = mongoose.model<IRule>('Rule', RuleSchema);
 
@@ -144,11 +144,13 @@ class RuleMethods {
   static async getRules(): Promise<IResponse>{
     try{
       const rules = await Rule.find();
+      const rulesAsObject = rules.map(rule => rule.toObject())
+      // console.log("RulesasObject", rulesAsObject)
       if(!rules){
         return {success: false, error: "No rules found"}
       }
       
-      return {success: true, data: rules}
+      return {success: true, data: rulesAsObject}
     } catch (error){
       //@ts-ignore
       return { success: false, error: error.message };

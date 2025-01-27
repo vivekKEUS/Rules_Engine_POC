@@ -1,15 +1,17 @@
 import { ServiceBroker } from "moleculer";
 import { RulesEngineService } from "./plugin-general-rulesengine";
-import CalendarService from "./plugin-calender/index";
+import CalendarService from "./plugin-calender";
 import CronManager from "./plugin-cron-manager";
 import { connectToDatabase } from "./model";
 import { v4 as uuidv4 } from 'uuid';
 import { brokerConfig } from "./moleculer.config";
+import { FanService } from "./plugin-fan";
 const broker = new ServiceBroker(brokerConfig);
 
 broker.createService(RulesEngineService);
 broker.createService(CalendarService);
 broker.createService(CronManager);
+broker.createService(FanService)
 
 await connectToDatabase();
 
@@ -237,7 +239,7 @@ const rule4 = {
                 "EndDate": "2030-01-01",
                 "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId": "PlaceHolderCalenderService"
+            "serviceId": "PlaceHoldercalendarService"
         }]
     },{
         "id" : "FanAutomationConditionSet2",
@@ -292,15 +294,15 @@ const rule5 = {
             "name": "time check",
             "type": "time",
             "operation": "greaterThanInclusive",
-            "eventId": "RelaxedModeAutomation",
+            "eventId": "FanOffAutomation",
             "factName": "time",
-            "factValue": "00:00",
+            "factValue": 0,
             "factObject": {
                 "StartDate": "2025-01-01",
                 "EndDate": "2030-01-01",
                 "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId": "calender", //service from which we will get the current fact's value
+            "serviceId": "calendar", //service from which we will get the current fact's value
             "factStateAction": "currentTime", //returns time in 24 hours format
         }]
     },{
@@ -313,18 +315,18 @@ const rule5 = {
             "operation":"lessThanInclusive",
             "eventId":"FanOffAutomation",
             "factName":"time",
-            "factValue":"18:00",
+            "factValue":1800,
             "factObject":{
                 "StartDate":"2025-01-01",
                 "EndDate":"2030-01-01",
                 "RecurrentPattern":"MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId":"calender",
+            "serviceId":"calendar",
             "factStateAction": "currentTime",
         }]
     }],
     "event": {
-        "type": "Fan Off Automation",
+        "type": "FanOffAutomation",
         "id": "FanOffAutomation",
         "params": {
             "actions": [
@@ -364,7 +366,7 @@ broker.start()
       cronExpression: "* * * * *",
       taskFunction: () => {
         console.log("This message is logged every 1 minute starting from 00:00");
-        broker.sendToChannel("p2.facts.state.changed", { facts: ["time"] });
+        broker.sendToChannel("p2.facts.state.changed", { facts: ["time"], id: "FanOffAutomation"});
       },
     });
 
