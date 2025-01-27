@@ -28,29 +28,12 @@ class GetRulesAction {
   static async handler(): Promise<IGetRulesAction.Response> {
     try {
       let rules = (await RulesDbModels.RuleMethods.getRules()).data; //gives out an array as output
-      console.log("get rules res", rules)
-
-      // for (let i = 0; i < rules.length; i++) {
-      //   let rule = rules[i];
-
-      //   rule["conditionSetIds"] = [];
-      //   let conditions:any = []
-      //   rule["conditionSetNames"] = [];
-        
-      //   for (const conditionSet of rule?.conditions) {
-      //     //here condition are conditionSets
-      //     //anyone condition of the conditionSet need to be true,
-      //     //for it to be evaluated as true
-      //     console.log("COONDition", conditionSet)
-      //     conditions.push(conditionSet?.conditions)
-      //     rule.conditionSetIds.push(conditionSet?.id)
-      //     rule.conditionSetNames.push(conditionSet?.name)
-      //   }
-      //   rules[i] = rule;
-      //   //my doubt is why are we aggregating all the conditions of the conditionSet ?
-      //   rule.conditions = conditions;
+      // console.log("get rules res", rules)
+      // let Rules:Array<RulesDbModels.IRule> = [];
+      // for (const temp of rules){
+      //   const newRule : RulesDbModels.IRule;
+      //   newRule.id
       // }
-      // console.log(`parsed rules = ${rules}`)
       return { success: true, data: rules };
     } catch (err) {
       return {

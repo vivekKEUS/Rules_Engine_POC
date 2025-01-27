@@ -47,7 +47,8 @@ class _RulesManager {
       }
 
       rules = <TRule[]>rulesRes?.data;
-      console.log(`number of rules = ${rules.length}`)
+      // console.log(`number of rules = ${rules.length}`)
+      // console.log("rules =", rules)
       // console.log(rules)
       for(let i = 0; i < rules.length; i++) {
         const rule = rules[i]
@@ -108,7 +109,7 @@ class _RulesManager {
           break;
         }
     }
-    console.log(`rules = ${rules}`)
+    console.log(`dependent rules = ${rules}`)
     return rules;
   }
 
@@ -123,10 +124,13 @@ class _RulesManager {
         continue;
       }
       // ruleEngine is an object of _Rule class
+      //update the needed rules with the given engine and eventId
+      //I dont understand the need of the eventId here
       ruleEngine.updateFacts(engine, eventId);
 
       let ruleProps = ruleEngine.getRuleProperties();
-
+      console.log(`ruleProps = ${JSON.stringify(ruleProps)}`)
+      console.log(`type = ${ruleProps.event.type}`)
       engine.addRule(ruleProps);
     }
   }
@@ -150,7 +154,7 @@ class _Rule {
       conditions: {
         all: [],
       },
-      event: this.rule.event, //every rule has only one event
+      event: this.rule.event,
     };
   }
 
@@ -186,6 +190,7 @@ formAndGetConditions() {
       this.ruleProperties.conditions = <AllConditions>this.ruleProperties.conditions;
       //the condition sets are added to the all array, forming an and operation
       this.ruleProperties.conditions.all.push(newCondition);
+      console.log(`rule properties = ${JSON.stringify(this.ruleProperties)}`)
     }
 }
   formFactCondition(condition: RuleModels.ICondition) {
@@ -234,13 +239,13 @@ formAndGetConditions() {
 
   updateFacts(engine: Engine, eventId: string) {
     // this.count+=1
+    console.log(`engine = ${engine}`)
     let factsToUpdate = this.eventIdToFactSetMap.keys();
     for (const fact of factsToUpdate) {
       let factsToAdd = this.eventIdToFactSetMap.get(fact);
       if (!factsToAdd) continue;
       console.log(
         "ADDING FACT --",
-        eventId,
         this.eventIdToFactSetMap,
         factsToAdd
       );
@@ -250,7 +255,7 @@ formAndGetConditions() {
     }
   }
 
-  //after understanding this function, I need to understand the
+  //using this we are updating all the states of facts, which we know of
   async updateLatestStateOfFact(engine: Engine, fact: string, eventId: string) {
     let serviceVersion = "1.0.0";
     const fetchFacts = async (
@@ -276,7 +281,7 @@ formAndGetConditions() {
       return factState;
       // return bool
     };
-
+    console.log(`fact = ${fact}, fetchFacts = ${fetchFacts}`)
     engine.addFact(fact, fetchFacts);
   }
 }

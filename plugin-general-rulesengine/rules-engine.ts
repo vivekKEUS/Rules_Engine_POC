@@ -29,8 +29,11 @@ class _RulesEngine {
     let dependentRulesonFacts = _RulesManager.getDependentRulesOfFacts(params.facts)
 
     console.log("----DEPENDENT RULES ON STATE CHANGE----",dependentRulesonFacts.length)
+    //I dont understand the requirement of params.id here
     _RulesManager.addRulesAndUpdateFactsState(this.engine,dependentRulesonFacts,params.id)
-    return this.engine.run()
+    console.log("Running the engine, everything ok till here")
+    // return this.engine.run({"time":1200})
+    return this.engine.run();
   }
 }
 

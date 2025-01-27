@@ -100,7 +100,7 @@ export class RulesEngineService extends Service {
                 );
               } else {
                 console.log("--------Emitting Durable Event");
-                broker.sendToStream(
+                broker.sendToChannel(
                   `${action.actionData.emitTriggerAction}`,
                   action.actionData.customActionData || {}
                 );
