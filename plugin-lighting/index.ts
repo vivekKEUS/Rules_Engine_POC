@@ -1,11 +1,11 @@
 import Moleculer, {Context, Service,ServiceBroker, type ServiceSchema, type ServiceSettingSchema } from "moleculer";
 import * as PluginConfig from "./config"
-import { GetVersionStr } from "../types";
+import { AsyncDelay, GetVersionStr } from "../types";
 import { GetFactsTriggerAction } from "./actions/get-facts-trigger";
-import { GetFanState } from "./actions/GetLightState";
-import { GetFanSpeed } from "./actions/GetLightColor";
-import { GetFanMode } from "./actions/GetLightBrightness";
-export class FanService extends Service{
+import { GetLightState } from "./actions/GetLightState";
+import { GetLightColor } from "./actions/GetLightColor";
+import { GetLightBrightness } from "./actions/GetLightBrightness";
+export class lightService extends Service{
     static broker: ServiceBroker
     constructor(_broker : ServiceBroker){
         super(_broker)
@@ -20,37 +20,36 @@ export class FanService extends Service{
                     return PluginConfig
                 },
                 GetFactsTriggerAction: GetFactsTriggerAction.handler,
-                GetFanState: GetFanState.handler,
-                GetFanSpeed: GetFanSpeed.handler,
-                GetFanMode: GetFanMode.handler,
+                GetLightState: GetLightState.handler,
+                GetLightColor: GetLightColor.handler,
+                GetLightBrightness: GetLightBrightness.handler,
             },
             channels: {
-                "p2.trigger-fan-state-change": {
+                "p2.trigger-bulb-state-change": {
                   async handler(ctx:Context) {
                     console.log(
-                      "------FAN SERVICE RECIEVED A MESSAGE-----",
+                      "------light SERVICE RECIEVED A MESSAGE-----",
                       ctx.params
                     );
+                    // await AsyncDelay(2000);
                   },
                 },
-                "p2.trigger-fan-speed-change": {
+                "p2.trigger-bulb-brightness-change": {
                   async handler(ctx: Context) {
                     console.log(
-                      "------FAN SPEED RECIEVED A MESSAGE-----",
+                      "------light SPEED RECIEVED A MESSAGE-----",
                       ctx.params
                     );
-                    //@ts-ignore
-                    // DeepMediaSceneActions.ExecuteSceneAction.handler(ctx);
+                      // await AsyncDelay(2000);
                   },
                 },
-                "p2.trigger-fan-mode-change": {
+                "p2.trigger-bulb-color-change": {
                   async handler(ctx: Context) {
                     console.log(
-                      "------FAN MODE RECIEVED A MESSAGE-----",
+                      "------light MODE RECIEVED A MESSAGE-----",
                       ctx
                     );
-                    //@ts-ignore
-                    // DeepMediaSceneActions.ExecuteSceneAction.handler(ctx);
+                      // await AsyncDelay(2000);
                   },
                 },
               },

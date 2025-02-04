@@ -66,3 +66,11 @@ export interface IResponse<Data = any> {
     error?: string;
     data?: Data;
 }
+
+export const AsyncDelay = function(delay: number) {
+    return new Promise(function(resolve) {
+        setTimeout(function() {
+            resolve({});
+        }, delay)
+    });
+}

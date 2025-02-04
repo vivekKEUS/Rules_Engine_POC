@@ -1,21 +1,21 @@
 import type { Context } from "moleculer";
 import type { IResponse } from "../../types"
-import { FACTS, MODES, POWER, SPEEDS } from "../constants";
-export class GetFanSpeed {
+import { FACTS, COLORS} from "../constants";
+export class GetLightColor {
     static async handler(ctx: Context): Promise<IResponse> {
         try {
             //get the deviceID from ctx.params
             let data: Record<string, any> = {}
             let i = Math.random()
-            let deviceSpeed = "null"
+            let deviceColor = ""
             if (i <= 0.33){
-                deviceSpeed = SPEEDS.LOW
+                deviceColor = COLORS.BLUE
             }else if(i <= 0.66){
-                deviceSpeed = SPEEDS.MEDIUM
+                deviceColor = COLORS.RED
             }else{
-                deviceSpeed = SPEEDS.HIGH
+                deviceColor = COLORS.GREEN
             }
-            data[FACTS.MODE] = deviceSpeed;
+            data[FACTS.BULB_COLOR] = deviceColor
 
             return {
                 success: true,

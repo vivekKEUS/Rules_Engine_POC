@@ -1,7 +1,7 @@
 import type { Context } from "moleculer";
 import type { IResponse } from "../../types"
 import { FACTS, POWER } from "../constants";
-export class GetFanState {
+export class GetLightState {
     static async handler(ctx: Context): Promise<IResponse> {
         try {
             //get the deviceID from ctx.params

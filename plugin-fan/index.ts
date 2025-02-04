@@ -1,6 +1,6 @@
 import Moleculer, {Context, Service,ServiceBroker, type ServiceSchema, type ServiceSettingSchema } from "moleculer";
 import * as PluginConfig from "./config"
-import { GetVersionStr } from "../types";
+import { AsyncDelay, GetVersionStr } from "../types";
 import { GetFactsTriggerAction } from "./actions/get-facts-trigger";
 import { GetFanState } from "./actions/GetFanState";
 import { GetFanSpeed } from "./actions/GetFanSpeed";
@@ -31,6 +31,7 @@ export class FanService extends Service{
                       "------FAN SERVICE RECIEVED A MESSAGE-----",
                       ctx.params
                     );
+                    // await AsyncDelay(2000);
                   },
                 },
                 "p2.trigger-fan-speed-change": {
@@ -39,8 +40,7 @@ export class FanService extends Service{
                       "------FAN SPEED RECIEVED A MESSAGE-----",
                       ctx.params
                     );
-                    //@ts-ignore
-                    // DeepMediaSceneActions.ExecuteSceneAction.handler(ctx);
+                    // await AsyncDelay(2000);
                   },
                 },
                 "p2.trigger-fan-mode-change": {
@@ -49,8 +49,7 @@ export class FanService extends Service{
                       "------FAN MODE RECIEVED A MESSAGE-----",
                       ctx
                     );
-                    //@ts-ignore
-                    // DeepMediaSceneActions.ExecuteSceneAction.handler(ctx);
+                    // await AsyncDelay(2000);
                   },
                 },
               },

@@ -58,18 +58,6 @@ class AddRuleAction {
         }
       }
 
-      // //loop to emit persistence or one-time event for each action which is to be executed
-      // //here action and routines are same
-      // for(let i = 0; i < params.event.params.actions.length; i++){
-      //   let action = params.event.params.actions[i]
-      //   if(action.strategy == "durable"){
-      //     // console.log(ctx.broker.sendToStream)
-      //     await ctx.broker.sendToChannel("p2.facts.state.changed",action);
-      //   }else{
-      //     await ctx.broker.emit("facts.state.changed",action); //forget and fire event
-      //   }
-      // }
-
       console.log("trying to insert data in mongo")  
       let addRes = await RulesDbModels.RuleMethods.addRule(params);
 

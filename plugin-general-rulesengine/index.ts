@@ -26,10 +26,12 @@ export const AsyncDelay = function(delay: number) {
 
 export class RulesEngineService extends Service {
   mongoFlag: boolean;
+  eventExecuted: boolean;
   constructor(broker: ServiceBroker) {
     super(broker);
 
     this.mongoFlag = true;
+    this.eventExecuted = false;
 
     this.parseServiceSchema({
       name: PluginConfig.ID,
@@ -101,7 +103,7 @@ export class RulesEngineService extends Service {
                 for (const [key,value] of action.actionData.customActionData.entries()){
                   payload[key] = value;
                 }}
-                broker.emit(
+                await broker.emit(
                   `${action.actionData.serviceId}-${action.actionData.emitTriggerAction}`,
                   payload
                 );
@@ -115,7 +117,7 @@ export class RulesEngineService extends Service {
                 for (const [key,value] of action.actionData.customActionData.entries()){
                   payload[key] = value;
                 }}
-                broker.sendToChannel(
+                await broker.sendToChannel(
                   `${action.actionData.emitTriggerAction}`,
                   payload
                 );
@@ -174,9 +176,14 @@ export class RulesEngineService extends Service {
           // group: `${this.broker.namespace}.${PluginConfig.ID}.p2.facts.state.changed`,
           // context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
-            console.log("------RULES ENGINE CHANNEL RECIEVED A MESSAGE-----");
             //@ts-ignore
-            this.factChangeEventHandler(ctx);
+            if(!this.eventExecuted){
+              console.log("------RULES ENGINE CHANNEL RECIEVED A MESSAGE-----");
+              //@ts-ignore
+              this.factChangeEventHandler(ctx);
+              //@ts-ignore
+              this.eventExecuted = true;
+            }
           },
         },
         "p2.rule.added":{

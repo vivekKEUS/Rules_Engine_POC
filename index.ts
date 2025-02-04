@@ -6,12 +6,16 @@ import { connectToDatabase } from "./model";
 import { v4 as uuidv4 } from 'uuid';
 import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
+import { lightService } from "./plugin-lighting";
+
+
 const broker = new ServiceBroker(brokerConfig);
 
 broker.createService(RulesEngineService);
 broker.createService(CalendarService);
 broker.createService(CronManager);
 broker.createService(FanService)
+broker.createService(lightService)
 
 await connectToDatabase();
 
@@ -93,7 +97,7 @@ const rule2 = {
                 "RecurrentPattern": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
             },
             "serviceId": "CalendarService"
-        },{
+        }, {
             "id": uuidv4(),
             "name": "weekdays check",
             "type": "motion detection",
@@ -163,23 +167,23 @@ const rule3 = {
             },
             "serviceId": "CalendarService"
         }]
-    },{
-        "id" : "RelaxedModeConditionSet2",
-        "name":"daily time check 2",
-        conditions:[{
+    }, {
+        "id": "RelaxedModeConditionSet2",
+        "name": "daily time check 2",
+        conditions: [{
             "id": uuidv4(),
-            "name":"time check 2",
-            "type":"time",
-            "operation":"lessThanInclusive",
-            "eventId":"RelaxedModeAutomation",
-            "factName":"time",
-            "factValue":"23:59",
-            "factObject":{
-                "StartDate":"2025-01-01",
-                "EndDate":"2030-01-01",
-                "RecurrentPattern":"MO,TU,WE,TH,FR,SAT,SUN"
+            "name": "time check 2",
+            "type": "time",
+            "operation": "lessThanInclusive",
+            "eventId": "RelaxedModeAutomation",
+            "factName": "time",
+            "factValue": "23:59",
+            "factObject": {
+                "StartDate": "2025-01-01",
+                "EndDate": "2030-01-01",
+                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId":"CalendarService"
+            "serviceId": "CalendarService"
         }]
     }],
     "event": {
@@ -241,23 +245,23 @@ const rule4 = {
             },
             "serviceId": "PlaceHoldercalendarService"
         }]
-    },{
-        "id" : "FanAutomationConditionSet2",
-        "name":"daily time check 2",
-        conditions:[{
+    }, {
+        "id": "FanAutomationConditionSet2",
+        "name": "daily time check 2",
+        conditions: [{
             "id": uuidv4(),
-            "name":"time check 2",
-            "type":"time",
-            "operation":"lessThanInclusive",
-            "eventId":"FanOnAutomation",
-            "factName":"time",
-            "factValue":"23:59",
-            "factObject":{
-                "StartDate":"2025-01-01",
-                "EndDate":"2030-01-01",
-                "RecurrentPattern":"MO,TU,WE,TH,FR,SAT,SUN"
+            "name": "time check 2",
+            "type": "time",
+            "operation": "lessThanInclusive",
+            "eventId": "FanOnAutomation",
+            "factName": "time",
+            "factValue": "23:59",
+            "factObject": {
+                "StartDate": "2025-01-01",
+                "EndDate": "2030-01-01",
+                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId":"PlaceHolderCalendarService"
+            "serviceId": "PlaceHolderCalendarService"
         }]
     }],
     "event": {
@@ -286,7 +290,7 @@ const rule4 = {
 }
 const rule5 = {
     "name": "Fan Off Automation",
-    "conditions": [{
+    conditions: [{
         "id": "FanAutomationConditionSet1",
         "name": "daily time check 1",
         "conditions": [{
@@ -305,23 +309,23 @@ const rule5 = {
             "serviceId": "calendar", //service from which we will get the current fact's value
             "factStateAction": "currentTime", //returns time in 24 hours format
         }]
-    },{
-        "id" : "FanAutomationConditionSet2",
-        "name":"daily time check 2",
-        conditions:[{
+    }, {
+        "id": "FanAutomationConditionSet2",
+        "name": "daily time check 2",
+        "conditions": [{
             "id": uuidv4(),
-            "name":"time check 2",
-            "type":"time",
-            "operation":"lessThanInclusive",
-            "eventId":"FanOffAutomation",
-            "factName":"time",
-            "factValue":1800,
-            "factObject":{
-                "StartDate":"2025-01-01",
-                "EndDate":"2030-01-01",
-                "RecurrentPattern":"MO,TU,WE,TH,FR,SAT,SUN"
+            "name": "time check 2",
+            "type": "time",
+            "operation": "lessThanInclusive",
+            "eventId": "FanOffAutomation",
+            "factName": "time",
+            "factValue": 1500,
+            "factObject": {
+                "StartDate": "2025-01-01",
+                "EndDate": "2030-01-01",
+                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
             },
-            "serviceId":"calendar",
+            "serviceId": "calendar",
             "factStateAction": "currentTime",
         }]
     }],
@@ -341,45 +345,137 @@ const rule5 = {
                         "emitTriggerAction": "p2.trigger-fan-state-change",
                         "customActionData": {
                             "deviceId": "device-1",
-                            "state" : "off",
+                            "state": "off",
                         }
                     }
                 },
             ]
         }
     },
-    "enabled":true,
+    "enabled": true,
+    "priority": 1
 }
-// async function main(){
-//     await broker.start()
-//     await broker.waitForServices("1.0.0.kiotp.plugins.general.rulesengine")
-//     broker.sendToChannel("p2.rule.added",rule1)
-//     broker.sendToChannel("p2.rule.added",rule2)
-//     broker.sendToChannel("p2.facts.state.changed",rule1)
-//     console.log("The, Worrdo!")
-// }
+const rule6 = {
+    "name": "TurnOnLightsThenTurnOnFans",
+    "desc": "Turn on lights and fans of bedroom, after 3 seconds turn off lights of porch",
+    conditions: [{
+        "id": "FanAutomationConditionSet1",
+        "name": "daily time check 1",
+        "conditions": [{
+            "id": uuidv4(),
+            "name": "time check",
+            "type": "time",
+            "operation": "greaterThanInclusive",
+            "eventId": "FanOffAutomation",
+            "factName": "time",
+            "factValue": 1500,
+            "factObject": {
+                "StartDate": "2025-01-01",
+                "EndDate": "2030-01-01",
+                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
+            },
+            "serviceId": "calendar", //service from which we will get the current fact's value
+            "factStateAction": "currentTime", //returns time in 24 hours format
+        }]
+    }, {
+        "id": "FanAutomationConditionSet2",
+        "name": "daily time check 2",
+        "conditions": [{
+            "id": uuidv4(),
+            "name": "time check 2",
+            "type": "time",
+            "operation": "lessThanInclusive",
+            "eventId": "FanOffAutomation",
+            "factName": "time",
+            "factValue": 2359,
+            "factObject": {
+                "StartDate": "2025-01-01",
+                "EndDate": "2030-01-01",
+                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
+            },
+            "serviceId": "calendar",
+            "factStateAction": "currentTime",
+        }]
+    }],
+    "event": {
+        "type": "F",
+        "id": "LightFansOnAutomation",
+        "params": {
+            "actions": [
+                {
+                    "id": uuidv4(),
+                    "type": "automation",
+                    "name": "Light Turning On Automation",
+                    "strategy": "durable",
+                    "waitTillCompletion": false,
+                    "actionData": {
+                        "serviceId": "kiotp.plugins.general.lighting",
+                        "emitTriggerAction": "p2.trigger-bulb-state-change",
+                        "customActionData": {
+                            "deviceId": "device-1",
+                            "state": "on",
+                        },
+                        
+                    },
+                },
+                {
+                    "id": uuidv4(),
+                    "type": "automation",
+                    "name": "Fan Turning On Automation",
+                    "strategy": "durable",
+                    "waitTillCompletion": false,
+                    "actionData": {
+                        "serviceId": "kiotp.plugins.general.fan",
+                        "emitTriggerAction": "p2.trigger-fan-state-change",
+                        "customActionData": {
+                            "deviceId": "device-1",
+                            "state": "on",
+                        },
+                    },
+                },{
+                    "id": uuidv4(),
+                    "type": "automation",
+                    "name": "Fan Turning Off Automation",
+                    "strategy": "durable",
+                    "waitTillCompletion": false,
+                    "actionData": {
+                        "serviceId": "kiotp.plugins.general.fan",
+                        "emitTriggerAction": "p2.trigger-fan-state-change",
+                        "customActionData": {
+                            "deviceId": "device-1",
+                            "state": "off",
+                        },
+                    },
+                },
+            ]
+        }
+    },
+    "enabled": true,
+    "priority": 5,
+}
 broker.start()
-  .then(async () => {
-    // Add a cron job to log every 1 minute
-    await broker.call("cron.manager.addJob", {
-      id: "logsevery1Minutes",
-      cronExpression: "* * * * *",
-      taskFunction: () => {
-        console.log("This message is logged every 1 minute starting from 00:00");
-        broker.sendToChannel("p2.facts.state.changed", { facts: ["time"], id: "FanOffAutomation"});
-      },
-    });
+    .then(async () => {
+        // Add a cron job to log every 1 minute
+        await broker.call("cron.manager.addJob", {
+            id: "logsevery1Minutes",
+            cronExpression: "* * * * *",
+            taskFunction: async() => {
+                console.log("This message is logged every 1 minute starting from 00:00");
+                broker.sendToChannel("p2.facts.state.changed", { facts: ["time"], id: "FanOffAutomation" });
+            },
+        });
 
-    try {
-      // Wait for required services and add a rule to the rules engine
-      await broker.waitForServices("1.0.0.kiotp.plugins.general.rulesengine");
-      await broker.call("1.0.0.kiotp.plugins.general.rulesengine.AddRule", rule5);
-      console.log("Rule 5 added successfully to the rules engine");
-    } catch (error) {
-      console.error("Error during adding rule 5 with the rules engine:", error);
-    }
-  })
-  .catch((err) => {
-    console.error("Error starting broker:", err);
-  });
+        try {
+            // Wait for required services and add a rule to the rules engine
+            await broker.waitForServices("1.0.0.kiotp.plugins.general.rulesengine");
+            // await broker.call("1.0.0.kiotp.plugins.general.rulesengine.AddRule", rule5);
+            await broker.call("1.0.0.kiotp.plugins.general.rulesengine.AddRule", rule6);
+            console.log("Rule 5 & 6 added successfully to the rules engine");
+        } catch (error) {
+            console.error("Error during adding rule 5 with the rules engine:", error);
+        }
+    })
+    .catch((err) => {
+        console.error("Error starting broker:", err);
+    });
 

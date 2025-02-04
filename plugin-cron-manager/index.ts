@@ -7,24 +7,23 @@ interface JobInfo {
   task: ScheduledTask;
   cronExpression: string;
   taskFunction: () => void;
-//   duration: number; // in minutes
-//   complementId: string; // ID of the job which will end this job
+  //   duration: number; // in minutes
+  //   complementId: string; // ID of the job which will end this job
 }
 
-export class CronManager extends Service{
+export class CronManager extends Service {
   private jobs: Record<string, JobInfo>;
 
   constructor(broker: ServiceBroker) {
     super(broker);
     this.jobs = {};
     this.parseServiceSchema({
-      name:"cron.manager",
-      actions:{
-        addJob : this.addJob,
-        removeJob : this.removeJob,
-        rescheduleJob : this.rescheduleJob,
-        listJobs : this.listJobs,
-        periodicEventEmission: this.periodEventEmission,
+      name: "cron.manager",
+      actions: {
+        addJob: this.addJob,
+        removeJob: this.removeJob,
+        rescheduleJob: this.rescheduleJob,
+        listJobs: this.listJobs,
       }
     })
   }
@@ -37,27 +36,52 @@ export class CronManager extends Service{
    * @returns `true` if the job was added, `false` if the ID already exists.
    * @throws Error if the cron expression is invalid
    */
+  // addJob(ctx: Context): boolean {
+  //   const {id,cronExpression,taskFunction} = <JobInfo>ctx.params;
+  //   if (this.jobs[id]) {
+  //     console.log(`Job with ID ${id} already exists.`);
+  //     return false;
+  //   }
+
+  //   if (!cron.validate(cronExpression)) {
+  //     console.error(cronExpression)
+  //     throw new Error(`Invalid cron expression: ${cronExpression}`);
+  //   }
+
+  //   try {
+  //     const task = cron.schedule(cronExpression, taskFunction);
+  //     console.trace("addJob called");
+  //     this.jobs[id] = {
+  //       id,
+  //       task,
+  //       cronExpression,
+  //       taskFunction
+  //     };
+  //     console.log(`Job ${id} added with schedule: ${cronExpression}`);
+  //     return true;
+  //   } catch (error) {
+  //     console.error(`Error scheduling job ${id}:`, error);
+  //     throw error;
+  //   }
+  // }
   addJob(ctx: Context): boolean {
-    const {id,cronExpression,taskFunction} = <JobInfo>ctx.params;
+    const { id, taskFunction } = <JobInfo>ctx.params;
+
     if (this.jobs[id]) {
       console.log(`Job with ID ${id} already exists.`);
       return false;
     }
 
-    if (!cron.validate(cronExpression)) {
-      console.error(cronExpression)
-      throw new Error(`Invalid cron expression: ${cronExpression}`);
-    }
-
     try {
-      const task = cron.schedule(cronExpression, taskFunction);
-      this.jobs[id] = {
-        id,
-        task,
-        cronExpression,
-        taskFunction
-      };
-      console.log(`Job ${id} added with schedule: ${cronExpression}`);
+      // Run task every 1 minute (60,000 ms)
+      const task = setInterval(() => {
+        console.log(`Executing job ${id} at`, new Date().toISOString());
+        taskFunction();
+      }, 60000);
+
+      console.trace("addJob called");
+
+      console.log(`Job ${id} added to run every 1 minute.`);
       return true;
     } catch (error) {
       console.error(`Error scheduling job ${id}:`, error);
@@ -126,13 +150,6 @@ export class CronManager extends Service{
     for (const [id, jobInfo] of Object.entries(this.jobs)) {
       console.log(`- Job ID: ${id}, Schedule: ${jobInfo.cronExpression}`);
     }
-  }
-
-  async periodEventEmission(ctx: Context){
-    const cronExpression = "* * * * *"
-    // const cronExpression = "0,15,30,45 * * * *"
-    console.log("Constant Event Emission every 15 minutes")
-    ctx.broker.emit("p2.facts.state.changed",{facts:["time"]})
   }
 }
 

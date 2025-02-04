@@ -1,7 +1,7 @@
 import type { Context } from "moleculer";
 import type { IResponse } from "../../types"
-import { FACTS, MODES, POWER } from "../constants";
-export class GetFanMode{
+import { FACTS, BRIGHTNESS} from "../constants";
+export class GetLightBrightness{
     static async handler(ctx: Context): Promise<IResponse> {
         try {
             //get the deviceID from ctx.params
@@ -10,15 +10,15 @@ export class GetFanMode{
             
             //for now I getting a random state for the device between on/off
             let i = Math.random()
-            let deviceMode = "null"
+            let deviceBrightness = "null"
             if (i <= 0.33){
-                deviceMode = MODES.SLEEP
+                deviceBrightness = BRIGHTNESS.LOW
             }else if(i <= 0.66){
-                deviceMode = MODES.NORMAL
+                deviceBrightness = BRIGHTNESS.MEDIUM
             }else{
-                deviceMode = MODES.TURBO
+                deviceBrightness = BRIGHTNESS.HIGH
             }
-            data[FACTS.MODE] = deviceMode;
+            data[FACTS.BRIGHTNESS] = deviceBrightness;
 
             return {
                 success: true,
