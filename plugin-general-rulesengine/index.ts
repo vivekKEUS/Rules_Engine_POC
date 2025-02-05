@@ -12,18 +12,11 @@ import {
 } from "./constants";
 import { _RulesManager } from "./helpers/rules-engine-helper";
 import { _RulesEngine } from "./rules-engine";
-import type { IAction } from "./models/kiotp_rules_engine_model";
+import type { IAction, IRuleEventParams, tempDelayTrigger } from "./models/kiotp_rules_engine_model";
 import { GetFactsTriggerAction } from "./actions/get-facts-triggers";
 import { AddRuleAction } from "./actions/manage-rules/rules";
 import { GetVersionStr } from "../types";
-export const AsyncDelay = function(delay: number) {
-    return new Promise(function(resolve) {
-        setTimeout(function() {
-            resolve({});
-        }, delay)
-    });
-}
-
+import { buildPayload, AsyncDelay } from "../types";
 export class RulesEngineService extends Service {
   mongoFlag: boolean;
   eventExecuted: boolean;
@@ -70,68 +63,42 @@ export class RulesEngineService extends Service {
         RemoveAction: RuleActionManager.RemoveActionFromRuleAction.handler,
         UpdateAction: RuleActionManager.UpdateActionInRuleAction.handler,
         GetTriggers: GetFactsTriggerAction.handler,
-        getMapping : RuleManager.GetMapping.handler
+        getMapping: RuleManager.GetMapping.handler
       },
       methods: {
         //
-        processActions: async (actions: IAction[]) => {
-          console.log("actions:-", actions);
-          for (const action of actions) {
-            try {
-              if (action.type == ActionType.Sleep.type) {
-                if (!action.actionData.customActionData?.delay) {
-                  continue;
+        processActions: async (actions: tempDelayTrigger[]) => {
+          for (const triggerSet of actions) {
+            // Delay before executing this set (if applicable)
+            if (triggerSet.delay) {
+              console.log(`-------- Delaying next set of triggers by ${triggerSet.delay} seconds`);
+              await AsyncDelay(triggerSet.delay * 1000);
+            }
+            if (triggerSet.triggers) {
+              console.log("Processing trigger set:", triggerSet);
+
+              const triggerPromises: Promise<any>[] = triggerSet.triggers.map(async (trigger) => {
+                try {
+                  console.log("-------- Emitting Durable Event");
+
+                  const payload = buildPayload(trigger.actionData.customActionData);
+                  const actionPath = `1.0.0.${trigger.actionData.serviceId}.${trigger.actionData.emitTriggerAction}`;
+
+                  console.log("Triggering action:", actionPath);
+                  return broker.call(actionPath, payload);
+                } catch (err) {
+                  console.error("Failed to execute action:", trigger.actionData, err);
                 }
+              });
 
-                await AsyncDelay(
-                  <number>action.actionData.customActionData?.delay
-                );
-
-                continue;
-              }
-
-              if (!action.actionData.emitTriggerAction) {
-                continue;
-              }
-
-              if (action.strategy == EventStrategy.FIRE_AND_FORGET) {
-                console.log("---------Emit Fire N Forget Event----------");
-                let payload:Record<string,any> = {}
-                if(action.actionData.customActionData == undefined){
-                  payload = {}
-                }else{
-                for (const [key,value] of action.actionData.customActionData.entries()){
-                  payload[key] = value;
-                }}
-                await broker.emit(
-                  `${action.actionData.serviceId}-${action.actionData.emitTriggerAction}`,
-                  payload
-                );
-              } else {
-
-                console.log("--------Emitting Durable Event");
-                let payload:Record<string,any> = {}
-                if(action.actionData.customActionData == undefined){
-                  payload = {}
-                }else{
-                for (const [key,value] of action.actionData.customActionData.entries()){
-                  payload[key] = value;
-                }}
-                await broker.sendToChannel(
-                  `${action.actionData.emitTriggerAction}`,
-                  payload
-                );
-              }
-            } catch (err) {
-              console.log(
-                "failed to execute action of ",
-                action.actionData.serviceId,
-                action.actionData,
-                err
-              );
+              // Execute all triggers in parallel
+              await Promise.all(triggerPromises);
             }
           }
         },
+
+        // Helper function to build payload
+
         factChangeEventHandler: async (ctx: Moleculer.Context) => {
           console.log("----FACTS CHANGED EVENT HANDLER-------");
           try {
@@ -153,7 +120,7 @@ export class RulesEngineService extends Service {
             engineResponse.events.forEach((event) => {
               console.log(
                 "----EVENT MATCHED THE STATE CHANGE---",
-                event.params
+                event.type
               );
               if (!event.params?.actions) {
                 return;
@@ -177,7 +144,7 @@ export class RulesEngineService extends Service {
           // context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
             //@ts-ignore
-            if(!this.eventExecuted){
+            if (!this.eventExecuted) {
               console.log("------RULES ENGINE CHANNEL RECIEVED A MESSAGE-----");
               //@ts-ignore
               this.factChangeEventHandler(ctx);
@@ -186,8 +153,8 @@ export class RulesEngineService extends Service {
             }
           },
         },
-        "p2.rule.added":{
-          async handler(ctx: Moleculer.Context){
+        "p2.rule.added": {
+          async handler(ctx: Moleculer.Context) {
             //rule is passed into the ctx.params here
             // ctx.broker.call("1.0.0.kiotp.plugins.general.rulesengine.AddRule", ctx.params) 
             RuleManager.AddRuleAction.handler(ctx)

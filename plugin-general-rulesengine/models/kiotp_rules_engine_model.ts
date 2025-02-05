@@ -46,9 +46,18 @@ interface IRuleConditions extends Document {
   conditions: ICondition[];
 }
 
-interface IRuleEventParams extends Document {
-  actions: IAction[];
+// interface IRuleEventParams extends Document {
+//   actions: IAction[];
+// }
+export interface tempDelayTrigger extends Document{
+  order: number;
+  delay?: number;
+  triggers?: IAction[];
 }
+interface IRuleEventParams extends Document {
+ actions: tempDelayTrigger[]
+}
+
 
 interface IRuleEvent extends Document {
   type: string;
@@ -102,9 +111,14 @@ const RuleConditionsSchema = new Schema<IRuleConditions>({
   name: { type: String, required: true },
   conditions: [ConditionSchema]
 });
-
 const RuleEventParamsSchema = new Schema<IRuleEventParams>({
-  actions: [ActionSchema]
+  actions: [
+    {
+    order: { type: Number, required: true},
+    delay: { type: Number},
+    triggers: [ActionSchema]
+  }
+]
 });
 
 const RuleEventSchema = new Schema<IRuleEvent>({
@@ -197,56 +211,56 @@ class RuleMethods {
       return { success: false, error: error.message };
     }
   }
-  static async addAction(ruleId: string, action: IAction): Promise<IResponse> {
-    try {
-      const rule = await Rule.findOne({ id: ruleId });
-      if (!rule) {
-        return { success: false, error: "rule does not exist" };
-      }
-      rule.event.params.actions.push(action);
-      return { success: true, data: rule.event.params.actions };
-    } catch (error) {
-      //@ts-ignore
-      return { success: false, error: error.message };
-    }
-  }
-  static async removeAction(ruleId: string, actionId: string): Promise<IResponse> {
-    try {
-      const rule = await Rule.findOne({ id: ruleId });
-      if (!rule) {
-        return { success: false, error: "rule does not exist" };
-      }
-      const actionIndex = rule.event.params.actions.findIndex(a => a.id === actionId);
-      if (actionIndex === -1) {
-        return { success: false, error: "action does not exist" };
-      }
-      rule.event.params.actions.splice(actionIndex, 1);
-      return { success: true, data: rule.event.params.actions };
-    } catch (error) {
-      //@ts-ignore
-      return { success: false, error: error.message };
-    }
-  }
-  static async updateAction(ruleId: string, action: IAction): Promise<IResponse> {
-    try {
-      // Find the rule
-      const rule = await Rule.findOne({ id: ruleId });
-      if (!rule) {
-        return { success: false, error: "rule does not exist" };
-      }
-      const actionIndex = rule.event.params.actions.findIndex(a => a.id === action.id);
-      if (actionIndex === -1) {
-        return { success: false, error: "action does not exist" };
-      }
-      // Update the action
-      rule.event.params.actions[actionIndex] = action;
-      return { success: true, data: rule.event.params.actions };
+  // static async addAction(ruleId: string, action: IAction): Promise<IResponse> {
+  //   try {
+  //     const rule = await Rule.findOne({ id: ruleId });
+  //     if (!rule) {
+  //       return { success: false, error: "rule does not exist" };
+  //     }
+  //     rule.event.params.actions.push(action);
+  //     return { success: true, data: rule.event.params.actions };
+  //   } catch (error) {
+  //     //@ts-ignore
+  //     return { success: false, error: error.message };
+  //   }
+  // }
+  // static async removeAction(ruleId: string, actionId: string): Promise<IResponse> {
+  //   try {
+  //     const rule = await Rule.findOne({ id: ruleId });
+  //     if (!rule) {
+  //       return { success: false, error: "rule does not exist" };
+  //     }
+  //     const actionIndex = rule.event.params.actions.findIndex(a => a.id === actionId);
+  //     if (actionIndex === -1) {
+  //       return { success: false, error: "action does not exist" };
+  //     }
+  //     rule.event.params.actions.splice(actionIndex, 1);
+  //     return { success: true, data: rule.event.params.actions };
+  //   } catch (error) {
+  //     //@ts-ignore
+  //     return { success: false, error: error.message };
+  //   }
+  // }
+  // static async updateAction(ruleId: string, action: IAction): Promise<IResponse> {
+  //   try {
+  //     // Find the rule
+  //     const rule = await Rule.findOne({ id: ruleId });
+  //     if (!rule) {
+  //       return { success: false, error: "rule does not exist" };
+  //     }
+  //     const actionIndex = rule.event.params.actions.findIndex(a => a.id === action.id);
+  //     if (actionIndex === -1) {
+  //       return { success: false, error: "action does not exist" };
+  //     }
+  //     // Update the action
+  //     rule.event.params.actions[actionIndex] = action;
+  //     return { success: true, data: rule.event.params.actions };
 
-    } catch (error) {
-      //@ts-ignore
-      return { success: false, error: error.message };
-    }
-  }
+  //   } catch (error) {
+  //     //@ts-ignore
+  //     return { success: false, error: error.message };
+  //   }
+  // }
   static async createConditionSet(conditionSet: Partial<IRuleConditions>): Promise<IResponse> {
     console.log("Creating condition set");
     try {
@@ -301,7 +315,7 @@ class RuleMethods {
     try {
       const rule = await Rule.findOne({ id: ruleId });
       if (!rule) {
-        return { success: false, error: "rule does not exist" };
+        return { success: false, error: "rule dofailed to insert rule in mongoes not exist" };
       }
 
       const conditionIndex = rule.conditions.findIndex(

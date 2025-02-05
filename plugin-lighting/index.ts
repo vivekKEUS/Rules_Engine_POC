@@ -23,6 +23,12 @@ export class lightService extends Service{
                 GetLightState: GetLightState.handler,
                 GetLightColor: GetLightColor.handler,
                 GetLightBrightness: GetLightBrightness.handler,
+                BulbStateChange: async (ctx: Context) => {
+                    AsyncDelay(3000)
+                    console.log("Light state changed",ctx.params);
+                    //@ts-ignore
+                    return {success: true, data: `Light is turned ${ctx.params.state}`}
+                }
             },
             channels: {
                 "p2.trigger-bulb-state-change": {

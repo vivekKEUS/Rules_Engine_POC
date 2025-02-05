@@ -74,3 +74,7 @@ export const AsyncDelay = function(delay: number) {
         }, delay)
     });
 }
+export const buildPayload = (customActionData?: Record<string, any>): Record<string, any> => {
+    if (!customActionData) return {};
+    return Object.fromEntries(customActionData.entries());
+  };

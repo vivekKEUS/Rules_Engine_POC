@@ -36,58 +36,55 @@ export class CronManager extends Service {
    * @returns `true` if the job was added, `false` if the ID already exists.
    * @throws Error if the cron expression is invalid
    */
-  // addJob(ctx: Context): boolean {
-  //   const {id,cronExpression,taskFunction} = <JobInfo>ctx.params;
-  //   if (this.jobs[id]) {
-  //     console.log(`Job with ID ${id} already exists.`);
-  //     return false;
-  //   }
-
-  //   if (!cron.validate(cronExpression)) {
-  //     console.error(cronExpression)
-  //     throw new Error(`Invalid cron expression: ${cronExpression}`);
-  //   }
-
-  //   try {
-  //     const task = cron.schedule(cronExpression, taskFunction);
-  //     console.trace("addJob called");
-  //     this.jobs[id] = {
-  //       id,
-  //       task,
-  //       cronExpression,
-  //       taskFunction
-  //     };
-  //     console.log(`Job ${id} added with schedule: ${cronExpression}`);
-  //     return true;
-  //   } catch (error) {
-  //     console.error(`Error scheduling job ${id}:`, error);
-  //     throw error;
-  //   }
-  // }
   addJob(ctx: Context): boolean {
-    const { id, taskFunction } = <JobInfo>ctx.params;
-
+    const {id,cronExpression,taskFunction} = <JobInfo>ctx.params;
     if (this.jobs[id]) {
       console.log(`Job with ID ${id} already exists.`);
       return false;
     }
 
+    if (!cron.validate(cronExpression)) {
+      console.error(cronExpression)
+      throw new Error(`Invalid cron expression: ${cronExpression}`);
+    }
+
     try {
-      // Run task every 1 minute (60,000 ms)
-      const task = setInterval(() => {
-        console.log(`Executing job ${id} at`, new Date().toISOString());
-        taskFunction();
-      }, 60000);
-
+      const task = cron.schedule(cronExpression, taskFunction);
       console.trace("addJob called");
-
-      console.log(`Job ${id} added to run every 1 minute.`);
+      this.jobs[id] = {
+        id,
+        task,
+        cronExpression,
+        taskFunction
+      };
+      console.log(`Job ${id} added with schedule: ${cronExpression}`);
       return true;
     } catch (error) {
       console.error(`Error scheduling job ${id}:`, error);
       throw error;
     }
   }
+  // addJob(ctx: Context): boolean {
+  //   const { id, taskFunction } = <JobInfo>ctx.params;
+
+  //   if (this.jobs[id]) {
+  //     console.log(`Job with ID ${id} already exists.`);
+  //     return false;
+  //   }
+
+  //   try {
+  //     // Run task every 1 minute (60,000 ms)
+  //     const task = setInterval(() => {
+  //       console.log(`Executing job ${id} at`, new Date().toISOString());
+  //       taskFunction();
+  //     }, 60000);
+  //     console.log(`Job ${id} added to run every 1 minute.`);
+  //     return true;
+  //   } catch (error) {
+  //     console.error(`Error scheduling job ${id}:`, error);
+  //     throw error;
+  //   }
+  // }
 
   /**
    * Removes an existing cron job.

@@ -68,6 +68,8 @@ class _RulesManager {
       console.log("failed to update rules map", err);
     }
     console.log(`Size of Rules' Hashmap =`, this.rulesMap.size);
+    //nestsed queue
+    
     //print just the conditions of the objects, I suspect that conditions are not filling up properly
     // for(const [ruleId,_rule]  of this.rulesMap.entries()){
     //   console.log(_rule.ruleProperties.conditions)

@@ -59,6 +59,7 @@ class AddRuleAction {
       }
 
       console.log("trying to insert data in mongo")  
+      console.log(params.event.params.actions)
       let addRes = await RulesDbModels.RuleMethods.addRule(params);
 
       if(addRes.success){
