@@ -19,12 +19,12 @@ export class FanService extends Service {
         GetPluginInfo: () => {
           return PluginConfig
         },
-        GetFactsTriggerAction: GetFactsTriggerAction.handler,
+        GetFactsTrigger: GetFactsTriggerAction.handler,
         GetFanState: GetFanState.handler,
         GetFanSpeed: GetFanSpeed.handler,
         GetFanMode: GetFanMode.handler,
         ChangeFanState: async (ctx: Context):Promise<any> => {
-          AsyncDelay(2000)
+          await AsyncDelay(2000)
           console.log("Fan state changed",ctx.params);
           //@ts-ignore
           return {success: true, data: `Fan is turned ctx.params.state`}

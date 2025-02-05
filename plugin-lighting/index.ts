@@ -19,12 +19,12 @@ export class lightService extends Service{
                 GetPluginInfo: () =>{
                     return PluginConfig
                 },
-                GetFactsTriggerAction: GetFactsTriggerAction.handler,
+                GetFactsTrigger: GetFactsTriggerAction.handler,
                 GetLightState: GetLightState.handler,
                 GetLightColor: GetLightColor.handler,
                 GetLightBrightness: GetLightBrightness.handler,
                 BulbStateChange: async (ctx: Context) => {
-                    AsyncDelay(3000)
+                    await AsyncDelay(3000)
                     console.log("Light state changed",ctx.params);
                     //@ts-ignore
                     return {success: true, data: `Light is turned ${ctx.params.state}`}

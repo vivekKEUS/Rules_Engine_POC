@@ -80,7 +80,6 @@ export class RulesEngineService extends Service {
               const triggerPromises: Promise<any>[] = triggerSet.triggers.map(async (trigger) => {
                 try {
                   console.log("-------- Emitting Durable Event");
-
                   const payload = buildPayload(trigger.actionData.customActionData);
                   const actionPath = `1.0.0.${trigger.actionData.serviceId}.${trigger.actionData.emitTriggerAction}`;
 
@@ -93,6 +92,7 @@ export class RulesEngineService extends Service {
 
               // Execute all triggers in parallel
               await Promise.all(triggerPromises);
+              console.log("Finished processing trigger set");
             }
           }
         },

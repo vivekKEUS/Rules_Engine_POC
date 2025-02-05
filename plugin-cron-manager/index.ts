@@ -18,6 +18,7 @@ export class CronManager extends Service {
     super(broker);
     this.jobs = {};
     this.parseServiceSchema({
+      version:"1.0.0",
       name: "cron.manager",
       actions: {
         addJob: this.addJob,

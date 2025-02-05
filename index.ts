@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
 import { lightService } from "./plugin-lighting";
+import { AsyncDelay } from "./types";
+import { FactsDiscoveryService } from "./plugin-fact-trigger-discoverer";
 
 
 const broker = new ServiceBroker(brokerConfig);
@@ -16,7 +18,7 @@ broker.createService(CalendarService);
 broker.createService(CronManager);
 broker.createService(FanService)
 broker.createService(lightService)
-
+broker.createService(FactsDiscoveryService)
 await connectToDatabase();
 const rule6 = {
     "name": "TurnOnLightsThenTurnOnFans",
@@ -134,7 +136,7 @@ const rule6 = {
 broker.start()
     .then(async () => {
         // Add a cron job to log every 1 minute
-        await broker.call("cron.manager.addJob", {
+        await broker.call("1.0.0.cron.manager.addJob", {
             id: "logsevery1Minutes",
             cronExpression: "* * * * *",
             taskFunction: async () => {

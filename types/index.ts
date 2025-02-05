@@ -58,7 +58,7 @@ export namespace IGetFactsTriggerAction {
 
     export interface Response {
         success: boolean;
-        data: Array<any>
+        data: any
     }
 }
 export interface IResponse<Data = any> {

@@ -33,9 +33,8 @@ export enum MODES {
     TURBO = "turbo"
 }
 
-export const FACTS_AND_TRIGGERS = [
-    {
-        TRIGGERS: [
+export const FACTS_AND_TRIGGERS = {
+        "TRIGGERS": [
             {
                 displayName: "Change Fan Power State",
                 eventName: EVENTS.TRIGGER_FAN_SPEED_CHANGE, //Event Name 
@@ -63,11 +62,20 @@ export const FACTS_AND_TRIGGERS = [
                 }
             }
         ],
-    }, {
-        FACTS: [
-            FACTS.FAN_STATE,
-            FACTS.SPEED,
-            FACTS.MODE
+    
+        "FACTS": [
+            {
+                factName: FACTS.FAN_STATE,
+                factValues : [POWER.ON, POWER.OFF],
+            },
+            {
+                factName: FACTS.SPEED,
+                factValues : [SPEEDS.LOW, SPEEDS.MEDIUM, SPEEDS.HIGH],
+            },
+            {
+                factName: FACTS.MODE,
+                factValues : [MODES.NORMAL, MODES.SLEEP, MODES.TURBO],
+            }
         ]
     }
-]
+
