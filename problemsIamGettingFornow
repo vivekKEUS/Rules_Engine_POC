@@ -1,3 +1,0 @@
-1. the durable events are not working properly, whenever I am emiting durable events, it is not being caught by the middleware
-    From logs of my app and the server I can see that my application is connecting to middleware, and events are being
-    registered in the middlware channels are well.

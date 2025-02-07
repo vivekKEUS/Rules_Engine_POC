@@ -49,6 +49,18 @@ export interface JobInfo {
     cronExpression: string;
     taskFunction: () => void;
 }
+export interface IFactsAndTriggers {
+    TRIGGERS: {
+        displayName: string;
+        eventName: string;
+        executionStrategy: string;
+        params: Record<string, any>;
+    }[],
+    FACTS: {
+        factName: string;
+        factValues: string[];
+    }[]
+}
 export const GetVersionStr = function (versionObj: VersionObject) {
     return `${versionObj.MAJOR}.${versionObj.MINOR}.${versionObj.PATCH}`;
 }
@@ -58,7 +70,7 @@ export namespace IGetFactsTriggerAction {
 
     export interface Response {
         success: boolean;
-        data: any
+        data: IFactsAndTriggers;
     }
 }
 export interface IResponse<Data = any> {

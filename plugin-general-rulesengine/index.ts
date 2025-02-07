@@ -1,4 +1,4 @@
-import Moleculer, { Service, ServiceBroker } from "moleculer";
+import Moleculer, { Context, Service, ServiceBroker } from "moleculer";
 import * as PluginConfig from "./config";
 import {
   RuleActionManager,
@@ -17,15 +17,16 @@ import { GetFactsTriggerAction } from "./actions/get-facts-triggers";
 import { AddRuleAction } from "./actions/manage-rules/rules";
 import { GetVersionStr } from "../types";
 import { buildPayload, AsyncDelay } from "../types";
+import { AddFacts } from "./models/kiotp_facts_triggers_discovery";
+import { AddTriggers } from "./models/kiotp_facts_triggers_discovery";
+import { getNewService } from "./actions/get-facts-triggers/getNewService";
 export class RulesEngineService extends Service {
   mongoFlag: boolean;
   eventExecuted: boolean;
   constructor(broker: ServiceBroker) {
     super(broker);
-
     this.mongoFlag = true;
     this.eventExecuted = false;
-
     this.parseServiceSchema({
       name: PluginConfig.ID,
       version: GetVersionStr(PluginConfig.VERSION),
@@ -62,14 +63,14 @@ export class RulesEngineService extends Service {
         AddAction: RuleActionManager.AddActionToRuleAction.handler,
         RemoveAction: RuleActionManager.RemoveActionFromRuleAction.handler,
         UpdateAction: RuleActionManager.UpdateActionInRuleAction.handler,
-        GetTriggers: GetFactsTriggerAction.handler,
-        getMapping: RuleManager.GetMapping.handler
+        GetFactsTrigger: GetFactsTriggerAction.handler,
+        getMapping: RuleManager.GetMapping.handler,
+        AddFacts: AddFacts,
+        AddTriggers: AddTriggers,
       },
       methods: {
-        //
         processActions: async (actions: tempDelayTrigger[]) => {
           for (const triggerSet of actions) {
-            // Delay before executing this set (if applicable)
             if (triggerSet.delay) {
               console.log(`-------- Delaying next set of triggers by ${triggerSet.delay} seconds`);
               await AsyncDelay(triggerSet.delay * 1000);
@@ -89,28 +90,16 @@ export class RulesEngineService extends Service {
                   console.error("Failed to execute action:", trigger.actionData, err);
                 }
               });
-
-              // Execute all triggers in parallel
               await Promise.all(triggerPromises);
               console.log("Finished processing trigger set");
             }
           }
         },
-
-        // Helper function to build payload
-
         factChangeEventHandler: async (ctx: Moleculer.Context) => {
           console.log("----FACTS CHANGED EVENT HANDLER-------");
           try {
-            //ctx.params contains the information we are passing in the 
-            //arguments
-            //particularly ctx.params contains here the information about the
-            //action or routine
-            //hence using ctx.params we get the desired action which we need to 
-            //perform
             let params = <{ id: string; facts: string[] }>ctx.params;
             let _engine = new _RulesEngine();
-            //using a new engine execute this action
             let engineResponse = await _engine.execute(params);
 
             if (engineResponse.events.length == 0) {
@@ -140,8 +129,8 @@ export class RulesEngineService extends Service {
       },
       channels: {
         "p2.facts.state.changed": {
-          // group: `${this.broker.namespace}.${PluginConfig.ID}.p2.facts.state.changed`,
-          // context: true, // Unless not enabled it globally
+          group: `${this.broker.namespace}.${PluginConfig.ID}.p2.facts.state.changed`,
+          context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
             //@ts-ignore
             if (!this.eventExecuted) {
@@ -158,7 +147,16 @@ export class RulesEngineService extends Service {
             //rule is passed into the ctx.params here
             // ctx.broker.call("1.0.0.kiotp.plugins.general.rulesengine.AddRule", ctx.params) 
             RuleManager.AddRuleAction.handler(ctx)
-          }
+          },
+          "p2.new.service.added": {
+                    async handler(ctx: Context) {
+                        console.log("------NEW SERVICE ADDED-----", ctx.params);
+                        //@ts-ignore
+                        AddFacts(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.FactName, ctx.params.FactValue);
+                        //@ts-ignore
+                        AddTriggers(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.TriggerName, ctx.params.TriggerAction, ctx.params.TriggerValue);
+                    },
+                },
         }
       },
       created: this.serviceCreated,
@@ -170,13 +168,6 @@ export class RulesEngineService extends Service {
   async serviceCreated() {
     this.logger.info(`${PluginConfig.NAME} Created`);
     console.log("RULES DB STARTED");
-    // try {
-    //   // await RulesDB();
-    // console.log("RULES DB STARTED");
-    // } catch (error) {
-    //   console.log("RULES DB ERROR", error);
-    // }
-    // await RulesEngineManager.setUpRuleEngines(this.broker);
     _RulesManager.init(this.broker);
     // let siteBroker = await startBridge(this.broker)
   }
@@ -184,17 +175,13 @@ export class RulesEngineService extends Service {
   async serviceStarted() {
     this.logger.info(`${PluginConfig.NAME} Started`);
     console.log("Service Started for Rules Engine")
-    // await this.broker.waitForServices(`${DeepmediaId}`)
-    //INFO: timer store commeted for tempory test
-    // setTimeout(() => {
-    //     TimersManager.start(this.broker)
-    // }, 30*1000);
+    let ctx = Context.create(this.broker);
+    console.log(ctx)
+    await getNewService(this.broker);
+    setInterval(()=>getNewService(this.broker), 30000) //30 seconds
   }
-
   serviceStopped() {
     this.logger.info(`${PluginConfig.NAME} Stopped`);
   }
 }
-
 export { PluginConfig };
-

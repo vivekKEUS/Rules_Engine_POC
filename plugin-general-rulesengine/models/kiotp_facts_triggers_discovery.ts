@@ -51,7 +51,6 @@ export const AddTriggers = async (ServiceId: string, ServiceVersion: string, Tri
     await trigger.save();
     return trigger;
 }
-//write function to get facts and triggers
 export const GetFacts = async () => {
     return Facts.find({});
 }

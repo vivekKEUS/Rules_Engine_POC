@@ -2,14 +2,11 @@
 import { RulesEngineService } from "./plugin-general-rulesengine";
 import CalendarService from "./plugin-calender";
 import CronManager from "./plugin-cron-manager";
-import { connectToDatabase } from "./model";
 import { v4 as uuidv4 } from 'uuid';
 import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
 import { lightService } from "./plugin-lighting";
-import { AsyncDelay } from "./types";
-import { FactsDiscoveryService } from "./plugin-fact-trigger-discoverer";
-
+import { connectToDatabase } from "./model";
 
 const broker = new ServiceBroker(brokerConfig);
 
@@ -18,7 +15,6 @@ broker.createService(CalendarService);
 broker.createService(CronManager);
 broker.createService(FanService)
 broker.createService(lightService)
-broker.createService(FactsDiscoveryService)
 await connectToDatabase();
 const rule6 = {
     "name": "TurnOnLightsThenTurnOnFans",

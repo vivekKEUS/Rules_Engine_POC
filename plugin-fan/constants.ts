@@ -32,8 +32,21 @@ export enum MODES {
     SLEEP = "sleep",
     TURBO = "turbo"
 }
+//create an interface for factsandtriggers
+interface IFactsAndTriggers {
+    TRIGGERS: {
+        displayName: string;
+        eventName: string;
+        executionStrategy: string;
+        params: Record<string, any>;
+    }[],
+    FACTS: {
+        factName: string;
+        factValues: string[];
+    }[]
+}
 
-export const FACTS_AND_TRIGGERS = {
+export const FACTS_AND_TRIGGERS:IFactsAndTriggers = {
         "TRIGGERS": [
             {
                 displayName: "Change Fan Power State",
