@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document} from 'mongoose';
 
 // Interfaces to define the shape of our documents
 interface IResponse<Data = any> {
@@ -11,57 +11,40 @@ interface IResponse<Data = any> {
 interface ICondition extends Document {
   id: string;
   operation: string;
-  name: string;
-  eventId: string; //which is this eventID, is this the eventId of the event that belongs to this rule, or the one that triggers it 
-  type: string;
   factName: string;
   factValue?: any;
-  factObject?: Record<string, any>;
-  factStateAction?: string; //we can include params here
+  factStateAction?: string;
   factPath?: string;
   serviceId: string;
 }
 
-interface IActionData extends Document {
-  serviceId: string;
-  emitTriggerAction?: string;
-  deviceType?: string;
-  devcieCategory?: string;
-  customActionData?: Record<string, any>;
-}
 
-interface IAction extends Document {
+interface ITrigger extends Document {
   id: string;
-  type: string;
-  name: string;
-  strategy?: string;
+  triggerName: string;
   maxTimeDifferenceMs?: number;
   waitTillCompletion: boolean;
-  actionData: IActionData;
+  customTriggerData?: Record<string, any>;
 }
 
 interface IRuleConditions extends Document {
   id: string;
   name: string;
-  conditions: ICondition[];
+  conditionSets: ICondition[];
 }
 
 // interface IRuleEventParams extends Document {
 //   actions: IAction[];
 // }
-export interface tempDelayTrigger extends Document{
+export interface IRuleActions extends Document{
   order: number;
   delay?: number;
-  triggers?: IAction[];
+  triggers?: ITrigger[];
 }
-interface IRuleEventParams extends Document {
- actions: tempDelayTrigger[]
-}
-
 
 interface IRuleEvent extends Document {
-  type: string;
-  params: IRuleEventParams;
+  name: string;
+  actions: IRuleActions[];
 }
 
 interface IRule extends Document {
@@ -71,18 +54,15 @@ interface IRule extends Document {
   conditions: IRuleConditions[];
   event: IRuleEvent;
   enabled?: boolean;
-  roomId?: string;
   priority ?: number;
 }
 const ConditionSchema = new Schema<ICondition>({
   id: { type: String, required: true },
   operation: { type: String, required: true },
   name: { type: String, required: true },
-  eventId: { type: String, required: true },
   type: { type: String, required: true },
   factName: { type: String, required: true },
   factValue: { type: Schema.Types.Mixed },
-  factObject: { type: Map, of: Schema.Types.Mixed },
   factStateAction: { type: String, default: "get" },
   factPath: String,
   serviceId: { type: String, required: true }

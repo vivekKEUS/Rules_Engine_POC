@@ -5,75 +5,48 @@ import {
 import type { AllConditions, NestedCondition, RuleProperties } from "json-rules-engine";
 import * as RuleModels from "../models/kiotp_rules_engine_model";
 import { GetRulesAction } from "../actions/manage-rules/rules";
-import { Context, ServiceBroker } from "moleculer";
-
-/*
-The TRule type starts with the Omit utility type, which is used to create a new type 
-by excluding the triggers property from the RuleModels.IRule type. The Omit utility 
-is useful when you want to use an existing type but need to exclude one or more 
-properties from it.
-*/
+import { ServiceBroker } from "moleculer";
 
 type TRule = RuleModels.IRule
-// type TRule = Omit<RuleModels.IRule, "triggers"> & {
-//   //why are we creating this, why is the need to have seperate conditionIds and 
-//   //conditionSetNames
-//   conditionSetIds: string[];
-//   conditions: Array<RuleModels.ICondition[]>;
-//   conditionSetNames: string[];
-// };
-
+interface FactUpdateParams {
+  eventId: string;
+  serviceId: string;
+  factStateAction: string;
+}
 class _RulesManager {
-  static rulesMap: Map<string, _Rule> = new Map(); //mapping of rule id to rule
-  static broker: ServiceBroker;
+  private static rulesMap: Map<string, _Rule> = new Map(); //mapping of rule id to rule
+  public static broker: ServiceBroker;
 
-  static init(broker: ServiceBroker) {
+  public static init(broker: ServiceBroker) {
     this.broker = broker;
     this.updateRules();
   }
 
-  static async updateRules() {
+  public static async updateRules() {
     try {
-      console.log("Rules Manager trying to get all the rules")
-      let rules: Array<TRule> = [];
-      let rulesRes = await GetRulesAction.handler();
-      if (rulesRes && !rulesRes.success) {
-        console.log("failed to start rules engines", rulesRes.error);
+      console.log("Rules Manager fetching all rules...");
+      const rulesResponse = await GetRulesAction.handler();
+
+      if (!rulesResponse?.success) {
+        console.error("Failed to fetch rules:", rulesResponse?.error);
         return;
       }
-
-      if (this.rulesMap) {
-        this.rulesMap.clear();
-      }
-
-      rules = <TRule[]>rulesRes?.data;
-      // console.log(`number of rules = ${rules.length}`)
-      // console.log("rules =", rules)
-      // console.log(rules)
-      for(let i = 0; i < rules.length; i++) {
-        const rule = rules[i]
-        console.log(rule)
+      this.rulesMap.clear();
+      const rules = rulesResponse.data as TRule[];
+      
+      rules.forEach(rule => {
         if (!rule.enabled) {
-          // this.rulesMap.delete(rule.id);
-          console.log("rule.enabled", rule.enabled, this.rulesMap);
-          //here we are not adding the enabled rules into the rules engine and executing it
-          //perhaps that part is done somwhere else
-          continue;
+          console.log(`Rule ${rule.id} is disabled. Skipping...`);
+          return;
         }
-        //need to imrpove the constructor of _Rule
-        let _rule = new _Rule(rule); //_Rule contains rule, ruleproperties, eventId -> set of facts mapping
-        this.rulesMap.set(rule.id, _rule);
-      }
-    } catch (err) {
-      console.log("failed to update rules map", err);
+        this.rulesMap.set(rule.id, new _Rule(rule));
+      });
+
+      console.log(`Rules updated. Total rules: ${this.rulesMap.size}`);
+    } catch (error) {
+      console.error("Failed to update rules map:", error);
     }
     console.log(`Size of Rules' Hashmap =`, this.rulesMap.size);
-    //nestsed queue
-    
-    //print just the conditions of the objects, I suspect that conditions are not filling up properly
-    // for(const [ruleId,_rule]  of this.rulesMap.entries()){
-    //   console.log(_rule.ruleProperties.conditions)
-    // }
   }
 
   static getDependentRulesOfFacts(facts: Array<string>) {
@@ -148,10 +121,9 @@ class _Rule {
     this.rule = rule;
     this.eventIdToFactSetMap = new Map();
     this.ruleProperties = this.createRuleProperties();  
-    this.formAndGetConditions(); //add the all and any condition in the ruleProperties
+    this.buildConditions();
   }
-
-  createRuleProperties() { //returns a basic structure of rule properties
+  private createRuleProperties() { //returns a basic structure of rule properties
     return {
       conditions: {
         all: [],
@@ -160,79 +132,54 @@ class _Rule {
     };
   }
 
-  getRuleProperties() {
+  public getRuleProperties() {
     return this.ruleProperties;
   }
 
 //this function create the condition for the ruleProperties (following the 
 //any and all subconditions of json-rules-engine) of the _Rule class
 //perhaps this ruleProperties can then be added to the json-rules-engine
-formAndGetConditions() {
-    for (let i = 0; i < this.rule.conditions.length; i++) {
-      const conditionSet = this.rule.conditions[i];
-      console.log(`at i = ${i}\n${conditionSet}`)
-      let newCondition: NestedCondition = { any: [] };
-      for (const condition of conditionSet.conditions) {
-        if (!condition || !condition.factName || !condition.operation) {
-          console.error("some shit is missing in conditionSet")
-          continue;
+private buildConditions() {
+    this.rule.conditions.forEach(conditionSet => {
+      const nestedCondition: NestedCondition = { any: [] };
+
+      conditionSet.conditions.forEach(condition => {
+        if (!condition.factName || !condition.operation) {
+          console.error("Invalid condition: missing factName or operation");
+          return;
         }
 
-        let factCondition = this.formFactCondition(condition);
-        console.log("ADDING CONDITION FOR RULE---------------", factCondition);
-        //this symbolises that any confition of the conditionSet need to true for 
-        // the entire conditionSet to be true
-        //this is a very important piece of code explaining the architecture
-        newCondition.any.push(factCondition);
-
-        //i dont understand this code, need to study about in greater detail
+        nestedCondition.any.push(this.formFactCondition(condition));
         this.addFactToEventFactSetMap(condition);
-      }
-      console.log("event match condition", newCondition);
-      this.ruleProperties.conditions = <AllConditions>this.ruleProperties.conditions;
-      //the condition sets are added to the all array, forming an and operation
-      this.ruleProperties.conditions.all.push(newCondition);
-      console.log(`rule properties = ${JSON.stringify(this.ruleProperties)}`)
-    }
-}
-  formFactCondition(condition: RuleModels.ICondition) {
-    //we splitting fact on the "." from factName, and taking the first name
-    let keys = condition.factName.split(".");
+      });
+
+      (this.ruleProperties.conditions as AllConditions).all.push(nestedCondition);
+    });
+  }
+  formFactCondition(condition: RuleModels.ICondition):NestedCondition{
+    let [fact] = condition.factName.split(".");
     let factCondition: NestedCondition = {
-      fact: keys[0],
+      fact: fact,
       operator: condition.operation,
       value: condition.factValue,
       params: {
-        //this params can be used to calcule the value using
         eventId: condition.eventId, //eventId is the deviceId or sceneId from where the fact is being triggered
         ruleId: this.rule.id, //ruleId is the id of the rule containig this fact
         serviceId: condition.serviceId, //serviceId and factState will helps us in getting the current fact-value
         factState: condition.factStateAction, //contains the name of the moleculer action which will give us the fact's current value
         recurrenPattern: condition.factObject,
       },
+      path: condition.factPath || condition.factName,
     };
-
-    //i need to see how exactly are we feeding data into the factPath
-    if (condition.factPath) {
-      factCondition.path = condition.factPath;
-    } else {
-      factCondition.path = condition.factName;
-    }
 
     return factCondition;
   }
-
-  //CACHING THE FACT WITH EVENTiD
   addFactToEventFactSetMap(condition: RuleModels.ICondition) {
-    if (this.eventIdToFactSetMap.has(condition.eventId)) {
-      this.eventIdToFactSetMap.get(condition.eventId)?.add(condition.factName);
-    } else {
-      let set = new Set<string>();
-      set.add(<string>condition.factName);
-      this.eventIdToFactSetMap.set(condition.eventId, set);
-      console.log(`inside eventToFactHashmap`)
-      console.log(this.eventIdToFactSetMap)
+    const { eventId, factName } = condition;
+    if (!this.eventIdToFactSetMap.has(eventId)) {
+      this.eventIdToFactSetMap.set(eventId, new Set());
     }
+    this.eventIdToFactSetMap.get(eventId)?.add(factName);
   }
 
   checkIfFactIsRelated(eventId: string) {
@@ -240,8 +187,6 @@ formAndGetConditions() {
   }
 
   updateFacts(engine: Engine, eventId: string) {
-    // this.count+=1
-    console.log(`engine = ${engine}`)
     let factsToUpdate = this.eventIdToFactSetMap.keys();
     for (const fact of factsToUpdate) {
       let factsToAdd = this.eventIdToFactSetMap.get(fact);
@@ -258,33 +203,28 @@ formAndGetConditions() {
   }
 
   //using this we are updating all the states of facts, which we know of
-  async updateLatestStateOfFact(engine: Engine, fact: string, eventId: string) {
+  private async updateLatestStateOfFact(engine: Engine, fact: string, eventId: string) {
     let serviceVersion = "1.0.0";
-    const fetchFacts = async (
-      params: Record<string, any>,
+    const fetchFactState = async (
+      params: FactUpdateParams,
       alamnac: Almanac
     ) => {
-      let factState: any = null;
       try {
-        let state: any = await _RulesManager.broker.call(
-          //in the rules I have to include the service name
-          `${serviceVersion}.${params.serviceId}.${params?.factState}`,
+        const state = await _RulesManager.broker.call(
+          `${serviceVersion}.${params.serviceId}.${params.factStateAction}`,
           {
             id: params.eventId,
           }
         );
-        console.log("-----GOT FACT STATE-----", state);
-        factState = state?.data;
+        //@ts-ignore
+        return state?.data;
       } catch (err) {
-        console.log("----FAILED TO GET FACT STATE-----", err);
+        console.error("Failed to fetch fact state:", err);
+        return null;
       }
-
-      // let bool = this.count%2 == 0
-      return factState;
-      // return bool
     };
-    console.log(`fact = ${fact}, fetchFacts = ${fetchFacts}`)
-    engine.addFact(fact, fetchFacts);
+    //@ts-ignore
+    engine.addFact(fact, fetchFactState);
   }
 }
 

@@ -28,7 +28,13 @@ export class lightService extends Service{
                     console.log("Light state changed",ctx.params);
                     //@ts-ignore
                     return {success: true, data: `Light is turned ${ctx.params.state}`}
-                }
+                },
+                BulbColorChange: async (ctx: Context) => {
+                    await AsyncDelay(3000)
+                    console.log("Light color changed",ctx.params);
+                    //@ts-ignore
+                    return {success: true, data: `Light color changed to ${ctx.params.color}`}
+                },
             },
             channels: {
                 "p2.trigger-bulb-state-change": {

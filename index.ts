@@ -3,6 +3,7 @@ import { RulesEngineService } from "./plugin-general-rulesengine";
 import CalendarService from "./plugin-calender";
 import CronManager from "./plugin-cron-manager";
 import { v4 as uuidv4 } from 'uuid';
+import { randomUUIDv7 } from "bun";
 import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
 import { lightService } from "./plugin-lighting";
@@ -27,14 +28,8 @@ const rule6 = {
             "name": "time check",
             "type": "time",
             "operation": "greaterThanInclusive",
-            "eventId": "FanOffAutomation",
             "factName": "time",
             "factValue": 1200,
-            "factObject": {
-                "StartDate": "2025-01-01",
-                "EndDate": "2030-01-01",
-                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
-            },
             "serviceId": "calendar", //service from which we will get the current fact's value
             "factStateAction": "currentTime", //returns time in 24 hours format
         }]
@@ -46,14 +41,8 @@ const rule6 = {
             "name": "time check 2",
             "type": "time",
             "operation": "lessThanInclusive",
-            "eventId": "FanOffAutomation",
             "factName": "time",
             "factValue": 2359,
-            "factObject": {
-                "StartDate": "2025-01-01",
-                "EndDate": "2030-01-01",
-                "RecurrentPattern": "MO,TU,WE,TH,FR,SAT,SUN"
-            },
             "serviceId": "calendar",
             "factStateAction": "currentTime",
         }]
@@ -74,7 +63,6 @@ const rule6 = {
                             "waitTillCompletion": false,
                             "actionData": {
                                 "serviceId": "kiotp.plugins.general.lighting",
-                                // "emitTriggerAction": "p2.trigger-bulb-state-change",
                                 "emitTriggerAction": "BulbStateChange",
                                 "customActionData": {
                                     "deviceId": "device-1B",
@@ -129,6 +117,73 @@ const rule6 = {
     "enabled": true,
     "priority": 5,
 }
+const rule7 = {
+    "name": "FanOnConsequent",
+    "desc": "Turn on light, and after 10 seconds make the color of light red",
+    conditions:[{
+        "id": "FanOnConditionSet1",
+        "name": "Fan On Starter",
+        "conditions":[{
+            "id": randomUUIDv7(),
+            "name": "Fan On Condition",
+            "type": "fan-power-state",
+            "operation": "equal",
+            "factValue": "on",
+            "serviceId": "kiotp.plugins.general.fan",
+            "factStateAction": "GetFanState",
+        }]
+    }],
+    "event" : {
+        "type": "FanOnSuccess",
+        "id": "FanOnConsequent",
+        "params":{
+            "actions":[
+                {
+                    "order": 0,
+                    "triggers":[
+                        {
+                            "id": randomUUIDv7(),
+                            "type": "automation",
+                            "name": "Light Turning On Automation",
+                            "strategy": "durable",
+                            "waitTillCompletion": true,
+                            "actionData":{
+                                "serviceId": "kiotp.plugins.general.lighting",
+                                "emitTriggerAction": "BulbStateChange",
+                                "customActionData":{
+                                    "deviceId": "device-1B",
+                                    "state": "on",
+                                }
+                            }
+                        }
+                    ]
+                },{
+                    "order":1,
+                    "delay": 10,
+                },{
+                    "order":2,
+                    "triggers":[
+                        {
+                            "id": randomUUIDv7(),
+                            "name": "Change Light Color Automation",
+                            "strategy": "durable",
+                            "waitTillCompletion": true,
+                            "actionData":{
+                                "serviceId": "kiotp.plugins.general.lighting",
+                                "emitTriggerAction": "BulbColorChange",
+                                "customActionData":{
+                                    "deviceId": "device-1B",
+                                    "color": "red",
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+
 broker.start()
     .then(async () => {
         // Add a cron job to log every 1 minute

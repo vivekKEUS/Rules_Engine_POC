@@ -1,31 +1,33 @@
 import { model, Schema } from "mongoose";
 
 export interface IFacts extends Document {
-    ServiceId: string;
-    ServiceVersion: string;
+    ServiceId: string; //ServiceId is the full name of the service
     FactName: string;
     FactValue: any[];
+    FactStateAction: string;
 };
 export interface ITriggers extends Document {
     ServiceId: string;
     ServiceVersion: string;
     TriggerName: string;
-    TriggerAction: string; //this method will be called to execute the trigger
+    TriggerAction?: string;
+    TriggerEvent?: string;
+    ExecutionStrategy?: string;
     TriggerValue: any[];
 }
 //create Facts and Triggers model for mongodb
 
 export const Facts = model<IFacts>('Facts', new Schema({
     ServiceId: String,
-    ServiceVersion: String,
     FactName: String,
-    FactValue: Array
+    FactValue: Array,
+    FactStateAction: String
 }));
 export const Triggers = model<ITriggers>('Triggers', new Schema({
     ServiceId: String,
-    ServiceVersion: String,
     TriggerName: String,
     TriggerAction: String,
+
     TriggerValue: Array
 }))
 

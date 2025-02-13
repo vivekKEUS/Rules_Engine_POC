@@ -1,3 +1,5 @@
+import { randomUUIDv7 } from "bun"
+
 export enum FACTS {
     BULB_STATE = "bulb-power-state",
     BRIGHTNESS = "bulb-brightness-change",
@@ -77,4 +79,76 @@ export const FACTS_AND_TRIGGERS = {
             factValues: [COLORS.RED, COLORS.GREEN, COLORS.BLUE], // Define available colors
         }
     ]
+}
+const rule7 = {
+    "name": "FanOnConsequent",
+    "desc": "Turn on light, and after 10 seconds make the color of light red",
+    conditions:[{
+        "id": "FanOnConditionSet1",
+        "name": "Fan On Starter",
+        "conditions":[{
+            "id": randomUUIDv7(),
+            "name": "Fan On Condition",
+            "type": "fan-power-state",
+            "operation": "equal",
+            "factValue": "on",
+            "serviceId": "kiotp.plugins.general.fan",
+            "factStateAction": "GetFanState",
+        }]
+    }],
+    "event" : {
+        "type": "FanOnSuccess",
+        "id": "FanOnConsequent",
+        "params":{
+            "actions":[
+                {
+                    "order": 0,
+                    "triggers":[
+                        {
+                            "id": randomUUIDv7(),
+                            "type": "automation",
+                            "name": "Light Turning On Automation",
+                            "strategy": "durable",
+                            "waitTillCompletion": true,
+                            "actionData":{
+                                "serviceId": "kiotp.plugins.general.lighting",
+                                "emitTriggerAction": "BulbStateChange",
+                                "customActionData":{
+                                    "deviceId": "device-1B",
+                                    "state": "on",
+                                }
+                            }
+                        }
+                    ]
+                },{
+                    "order":1,
+                    "delay": 10,
+                },{
+                    "order":2,
+                    "triggers":[
+                        {
+                            "id": randomUUIDv7(),
+                            "type": "automation",
+                            "name": "Change Light Color Automation",
+                            "strategy": "durable",
+                            "waitTillCompletion": true,
+                            "actionData":{
+                                "serviceId": "kiotp.plugins.general.lighting",
+                                "emitTriggerAction": "BulbColorChange",
+                                "customActionData":{
+                                    "deviceId": "device-1B",
+                                    "color": "red",
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+
+const rule8 = {
+    "name": "LightsOnAndBrightnessMedium",
+    
 }

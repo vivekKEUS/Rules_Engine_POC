@@ -5,16 +5,10 @@ import {
   RuleManager,
   RulesConditionManager,
 } from "./actions/manage-rules";
-import { RulesDB } from "./models/kiotp_rules_engine_model";
-import {
-  ActionType,
-  EventStrategy,
-} from "./constants";
 import { _RulesManager } from "./helpers/rules-engine-helper";
 import { _RulesEngine } from "./rules-engine";
-import type { IAction, IRuleEventParams, tempDelayTrigger } from "./models/kiotp_rules_engine_model";
+import type {tempDelayTrigger } from "./models/kiotp_rules_engine_model";
 import { GetFactsTriggerAction } from "./actions/get-facts-triggers";
-import { AddRuleAction } from "./actions/manage-rules/rules";
 import { GetVersionStr } from "../types";
 import { buildPayload, AsyncDelay } from "../types";
 import { AddFacts } from "./models/kiotp_facts_triggers_discovery";
@@ -142,22 +136,15 @@ export class RulesEngineService extends Service {
             }
           },
         },
-        "p2.rule.added": {
-          async handler(ctx: Moleculer.Context) {
-            //rule is passed into the ctx.params here
-            // ctx.broker.call("1.0.0.kiotp.plugins.general.rulesengine.AddRule", ctx.params) 
-            RuleManager.AddRuleAction.handler(ctx)
+        "p2.new.service.added": {
+          async handler(ctx: Context) {
+              console.log("------NEW SERVICE ADDED-----", ctx.params);
+              //@ts-ignore
+              AddFacts(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.FactName, ctx.params.FactValue);
+              //@ts-ignore
+              AddTriggers(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.TriggerName, ctx.params.TriggerAction, ctx.params.TriggerValue);
           },
-          "p2.new.service.added": {
-                    async handler(ctx: Context) {
-                        console.log("------NEW SERVICE ADDED-----", ctx.params);
-                        //@ts-ignore
-                        AddFacts(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.FactName, ctx.params.FactValue);
-                        //@ts-ignore
-                        AddTriggers(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.TriggerName, ctx.params.TriggerAction, ctx.params.TriggerValue);
-                    },
-                },
-        }
+      },
       },
       created: this.serviceCreated,
       started: this.serviceStarted,
