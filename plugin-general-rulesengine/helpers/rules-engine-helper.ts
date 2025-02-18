@@ -105,7 +105,7 @@ class RuleRegistry {
 class Rule {
   private rule: TRule;
   private ruleProperties: RuleProperties;
-  private factToParams: Map<string,Record<any,any>> = new Map(); //store facts with their params, params are used in calculating the present value of fact
+  private factSet = new Set<string>(); //store facts with their params, params are used in calculating the present value of fact
 
   constructor(rule: TRule) {
     this.rule = rule;
@@ -131,10 +131,10 @@ class Rule {
   }
 
   public hasFact(fact: string): boolean {
-    return this.factToParams.has(fact);
+    return this.factSet.has(fact);
   }
   public getFacts():string[]{
-    return [...this.factToParams.keys()];
+    return [...this.factSet];
   }
 
   private buildConditions() {
@@ -149,7 +149,7 @@ class Rule {
         }
         nestedCondition.any.push(this.formFactCondition(condition));
         //very important line, don't change the below line, else everything will break
-        this.factToParams.set(condition.factName,condition.params||{})
+        this.factSet.add(condition.factName)
       }
       (this.ruleProperties.conditions as AllConditions).all.push(nestedCondition);
     }
@@ -157,23 +157,26 @@ class Rule {
 
   private formFactCondition(condition: RuleModels.ICondition): NestedCondition {
     return {
-      fact: condition.factName.split(".")[0],
+      fact: condition.factName,
       operator: condition.operation,
       value: condition.factValue,
       priority: condition.priority || 1,
       name: condition.name || "",
-      params: { ...condition.params },
+      params: { 
+        serviceId: condition.serviceId, //serviceId and factState will helps us in getting the current fact-value
+        factStateAction: condition.factStateAction, //contains the name of the moleculer action which will give us the fact's current value
+        ...condition.params },
       path: condition.factPath || condition.factName,
     };
   }
 
   public updateFacts(engine: Engine) {
-    for (const [factName,params] of this.factToParams.entries()) {
-      this.updateFactState(engine, factName,params);
+    for (const factName of this.factSet.values()) {
+      this.updateFactState(engine, factName);
     }
   }
 
-  private async updateFactState(engine: Engine, fact: string, params: Record<any,any>) {
+  private async updateFactState(engine: Engine, fact: string) {
     const fetchFactState = async (params: Record<any, any>, almanac: Almanac) => {
       console.log(`params`, params)
       try {
