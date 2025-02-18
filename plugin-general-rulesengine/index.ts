@@ -5,9 +5,9 @@ import {
   RuleManager,
   RulesConditionManager,
 } from "./actions/manage-rules";
-import { _RulesManager } from "./helpers/rules-engine-helper";
+import { RuleRegistry } from "./helpers/ruleRegistry";
 import { _RulesEngine } from "./rules-engine";
-import type {tempDelayTrigger } from "./models/kiotp_rules_engine_model";
+import type {IRoutineSet } from "./models/kiotp_rules_engine_model";
 import { GetFactsTriggerAction } from "./actions/get-facts-triggers";
 import { GetVersionStr } from "../types";
 import { buildPayload, AsyncDelay } from "../types";
@@ -63,28 +63,27 @@ export class RulesEngineService extends Service {
         AddTriggers: AddTriggers,
       },
       methods: {
-        processActions: async (actions: tempDelayTrigger[]) => {
-          for (const triggerSet of actions) {
-            if (triggerSet.delay) {
-              console.log(`-------- Delaying next set of triggers by ${triggerSet.delay} seconds`);
-              await AsyncDelay(triggerSet.delay * 1000);
+        processActions: async (routineSets: IRoutineSet[]) => {
+          for (const routineSet of routineSets) {
+            if (routineSet.delay) {
+              console.log(`-------- Delaying next routine by ${routineSet.delay} seconds`);
+              await AsyncDelay(routineSet.delay * 1000);
             }
-            if (triggerSet.triggers) {
-              console.log("Processing trigger set:", triggerSet);
+            if (routineSet.routines) {
+              console.log("Processing routines:", routineSet.routines);
 
-              const triggerPromises: Promise<any>[] = triggerSet.triggers.map(async (trigger) => {
+              const executionPromises: Promise<any>[] = routineSet.routines.map(async (execution) => {
                 try {
                   console.log("-------- Emitting Durable Event");
-                  const payload = buildPayload(trigger.actionData.customActionData);
-                  const actionPath = `1.0.0.${trigger.actionData.serviceId}.${trigger.actionData.emitTriggerAction}`;
-
-                  console.log("Triggering action:", actionPath);
+                  let payload = execution.customExecutionData;
+                  const actionPath = `1.0.0.${execution.serviceId}.${execution.action}`;
+                  console.log("Executing action:", actionPath);
                   return broker.call(actionPath, payload);
                 } catch (err) {
-                  console.error("Failed to execute action:", trigger.actionData, err);
+                  console.error("Failed to execute action:", execution.action, err);
                 }
               });
-              await Promise.all(triggerPromises);
+              await Promise.all(executionPromises);
               console.log("Finished processing trigger set");
             }
           }
@@ -108,7 +107,7 @@ export class RulesEngineService extends Service {
               if (!event.params?.actions) {
                 return;
               }
-              this.processActions(event.params.actions);
+              this.processActions(event.params);
             });
           } catch (err) {
             console.log("error while processing fact change event", err);
@@ -155,7 +154,7 @@ export class RulesEngineService extends Service {
   async serviceCreated() {
     this.logger.info(`${PluginConfig.NAME} Created`);
     console.log("RULES DB STARTED");
-    _RulesManager.init(this.broker);
+    RuleRegistry.init(this.broker);
     // let siteBroker = await startBridge(this.broker)
   }
 
@@ -163,9 +162,8 @@ export class RulesEngineService extends Service {
     this.logger.info(`${PluginConfig.NAME} Started`);
     console.log("Service Started for Rules Engine")
     let ctx = Context.create(this.broker);
-    console.log(ctx)
-    await getNewService(this.broker);
-    setInterval(()=>getNewService(this.broker), 30000) //30 seconds
+    // await getNewService(this.broker);
+    // setInterval(()=>getNewService(this.broker), 30000) //30 seconds
   }
   serviceStopped() {
     this.logger.info(`${PluginConfig.NAME} Stopped`);

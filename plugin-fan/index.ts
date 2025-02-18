@@ -1,4 +1,4 @@
-import Moleculer, { Context, Service, ServiceBroker, type ServiceSchema, type ServiceSettingSchema } from "moleculer";
+import { Context, Service, ServiceBroker} from "moleculer";
 import * as PluginConfig from "./config"
 import { AsyncDelay, GetVersionStr } from "../types";
 import { GetFactsTriggerAction } from "./actions/get-facts-trigger";
@@ -59,6 +59,15 @@ export class FanService extends Service {
           },
         },
       },
+      started: this.serviceStarted,
     });
+  }
+  async serviceStarted(){
+    setTimeout(async () => {
+      await this.broker.sendToChannel("p2.facts.state.changed", {
+        facts: ["fan-power-state"],
+        id: "Fan-F1" 
+      })
+    }, 3 * 1000); //After 3 Seconds, turn on the fan
   }
 }

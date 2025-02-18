@@ -1,10 +1,10 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/rules-engine-helper";
+import { _RulesManager } from "../../../helpers/ruleRegistry";
 import { GetMapping } from "./getMapping";
 import mongoose from "mongoose";
 import type { IRule } from "../../../models/kiotp_rules_engine_model";
-import { pbkdf2 } from "crypto";
+
 export namespace IAddRuleAction {
   export interface Request extends RulesDbModels.IRule {
     name: string;
@@ -19,59 +19,41 @@ export namespace IAddRuleAction {
 }
 
 class AddRuleAction {
-  static params = {};
-
   static hooks = {
     before(ctx: Context) {
-      console.log("this is before", ctx.params);
+      console.info("[AddRuleAction] Before Hook - Incoming Params:", JSON.stringify(ctx.params, null, 2));
     },
     after(ctx: Context, res: IAddRuleAction.Response) {
-      console.log("this is after", ctx.params, res);
-
+      console.info("[AddRuleAction] After Hook - Params:", JSON.stringify(ctx.params, null, 2), "Response:", JSON.stringify(res, null, 2));
       return res;
     },
   };
 
   static async handler(ctx: Context): Promise<IAddRuleAction.Response> {
-    console.log(ctx.params, ctx.id);
+    // console.info("[AddRuleAction] Handler - Processing Rule Addition", "Context ID:", ctx.id, "Params:", JSON.stringify(ctx.params, null, 2));
     try {
-      let params = <IAddRuleAction.Request>ctx.params;
+      let rule = <IAddRuleAction.Request>ctx.params;
 
-      if (!params.name)
+      if (!rule.name) {
+        console.warn("[AddRuleAction] Validation Failed - Missing Rule Name");
         return {
           success: false,
           error: "rule.name is required to create rule",
         };
-
-      params.id = new mongoose.Types.ObjectId().toString();
-
-      let rulesMapping : any = await GetMapping.handler(ctx);
-      let newParams : any = Object.assign({}, params);
-      let conditions = params.conditions.map(conditionSet => conditionSet.conditions)
-      newParams.conditions = conditions
-      let currentRuleMapping  : any = await GetMapping.extractSceneIdsFromRule(newParams);
-      let isCircular = await GetMapping.isCircular(rulesMapping, currentRuleMapping)
-      if(isCircular){
-        return {
-          success :  false,
-          error : "Circular loop detected"
-        }
       }
 
-      console.log("trying to insert data in mongo")  
-      console.log(params.event.params.actions)
-      let addRes = await RulesDbModels.RuleMethods.addRule(params);
+      console.info("[AddRuleAction] Attempting to Insert Rule into MongoDB");
+      let addRes = await RulesDbModels.RuleMethods.addRule(rule);
 
-      if(addRes.success){
-        console.log("new rule inserted in mongo")
-        _RulesManager.updateRules()
-      }else{
-        console.log("failed to insert rule in mongo")
-        console.log(addRes.error)
+      if (addRes.success) {
+        console.info("[AddRuleAction] Rule Successfully Inserted into MongoDB");
+        _RulesManager.updateRules();
+      } else {
+        console.error("[AddRuleAction] Rule Insertion Failed", "Error:", addRes.error);
       }
       return addRes;
     } catch (err) {
-      console.log("error while adding rule", err)
+      console.error("[AddRuleAction] Exception Encountered While Adding Rule", "Error:", err);
       return {
         success: false,
         error: err?.toString(),

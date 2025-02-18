@@ -17,7 +17,7 @@ class GetFactsTriggerAction {
 
     static async handler(ctx: Context): Promise<IGetFactsTriggerAction.Response> {
         console.log(ctx.params, ctx.id);
-        let response:any =  await ctx.broker.call(`v1.site_manager.GetPlugins`);
+        let response:any =  await ctx.broker.call(`$node.services`);
         let pluginsList: Array<any>  = response.pluginsInfo
         let facts = []
         let factsAndtriggers : any = {}

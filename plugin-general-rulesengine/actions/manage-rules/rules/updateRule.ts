@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/rules-engine-helper";
+import { _RulesManager } from "../../../helpers/ruleRegistry";
 import { GetMapping } from "./getMapping";
 
 export namespace IUpdateRuleAction {
@@ -32,23 +32,18 @@ class UpdateRuleAction {
     try {
       let params = <IUpdateRuleAction.Request>ctx.params;
 
-      if (!params.id)
+      if (!params.name)
         return {
           success: false,
-          error: "rule.id is required to update the rule",
+          error: "rule.name is required to update the rule",
         };
       let rulesMapping : any = await GetMapping.handler(ctx);
       let newParams : any = Object.assign({}, params);
-      let conditions = params.conditions.map(conditionSet => conditionSet.conditions)
-      newParams.conditions = conditions
-      let currentRuleMapping  : any = await GetMapping.extractSceneIdsFromRule(newParams);
-      let isCircular = await GetMapping.isCircular(rulesMapping, currentRuleMapping)
-      if(isCircular){
-        return {
-          success :  false,
-          error : "Circular loop detected"
-        }
+      let conditions = {}
+      if(params.conditionSets){
+        conditions = params.conditionSets.map(conditionSet => conditionSet.conditions)
       }
+      newParams.conditions = conditions
       let res = await RulesDbModels.RuleMethods.updateRule(params);
       
       if(res.success){

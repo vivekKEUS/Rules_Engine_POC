@@ -23,7 +23,7 @@ export class MotionService extends Service {
         GetMotionState: GetMotionState.handler,
         GetMotionSensitivity: GetMotionSensitivity.handler,
         GetMotionAlertMode: GetMotionAlertMode.handler,
-        ChangeMotionState: async (ctx: Context): Promise<any> => {
+        MotionStateChange: async (ctx: Context): Promise<any> => {
           await AsyncDelay(2000);
           console.log("Motion state changed", ctx.params);
           //@ts-ignore

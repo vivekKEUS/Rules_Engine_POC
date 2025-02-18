@@ -10,9 +10,12 @@ broker.createService(MotionService)
 broker.start()
     .then(async () => {
         console.log("Broker of system 2 started successfully");
+        const response = await broker.call("$node.services");
+        console.log(response)
     })
     .catch((err) => {
         console.error("Error starting broker:", err);
     });
+
 
 

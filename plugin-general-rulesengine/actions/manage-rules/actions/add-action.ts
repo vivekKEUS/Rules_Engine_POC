@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import { RuleMethods, IAction } from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/rules-engine-helper";
+import { _RulesManager } from "../../../helpers/ruleRegistry";
 import { ObjectId } from "mongodb";
 
 // Define request and response interfaces with proper typing

@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../../helpers/rules-engine-helper";
+import { _RulesManager } from "../../../../helpers/ruleRegistry";
 import {sendLiveEvent} from "../../../../utils"
 
 export namespace IRemoveConditionSet {

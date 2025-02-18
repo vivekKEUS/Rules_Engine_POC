@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/rules-engine-helper";
+import { _RulesManager } from "../../../helpers/ruleRegistry";
 import { RuleManager } from "..";
 export namespace IAddRuleAction {
   export interface Request extends RulesDbModels.IRule {

@@ -1,13 +1,6 @@
 import { Engine} from "json-rules-engine";
-import type { NestedCondition, RuleProperties } from "json-rules-engine";
-import * as RuleModels from "./models/kiotp_rules_engine_model";
-import { _RulesManager } from "./helpers/rules-engine-helper";
+import { RuleRegistry } from "./helpers/ruleRegistry";
 
-type TRule = Omit<RuleModels.IRule, "triggers"> & {
-  conditionIds: string[];
-  conditions: Array<RuleModels.ICondition[]>;
-  conditionSetNames: string[];
-};
 
 interface IExecuteParams{
   id: string,
@@ -26,11 +19,12 @@ class _RulesEngine {
 
     //params is an action here, see the schema of IAction
     //how the hell can I get any facts from the action, I need to access the wholeass rule
-    let dependentRulesonFacts = _RulesManager.getDependentRulesOfFacts(params.facts)
+    let dependentRulesonFacts = RuleRegistry.getDependentRulesOfFacts(params.facts)
 
-    console.log("----DEPENDENT RULES ON STATE CHANGE----",dependentRulesonFacts.length)
+    console.log("----DEPENDENT RULES ON STATE CHANGE----",dependentRulesonFacts.size)
     //I dont understand the requirement of params.id here
-    _RulesManager.addRulesAndUpdateFactsState(this.engine,dependentRulesonFacts,params.id)
+    console.log("params", params)
+    RuleRegistry.addRulesAndUpdateFactsState(this.engine,dependentRulesonFacts)
     console.log("Running the engine, everything ok till here")
     // return this.engine.run({"time":1200})
     return this.engine.run();

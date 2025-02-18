@@ -27,13 +27,7 @@ class GetRulesAction {
 
   static async handler(): Promise<IGetRulesAction.Response> {
     try {
-      let rules = (await RulesDbModels.RuleMethods.getRules()).data; //gives out an array as output
-      // console.log("get rules res", rules)
-      // let Rules:Array<RulesDbModels.IRule> = [];
-      // for (const temp of rules){
-      //   const newRule : RulesDbModels.IRule;
-      //   newRule.id
-      // }
+      let rules = (await RulesDbModels.RuleMethods.getRules()).data;
       return { success: true, data: rules };
     } catch (err) {
       return {

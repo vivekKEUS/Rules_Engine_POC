@@ -1,7 +1,7 @@
 import { Context } from "moleculer";
 // import { RulesEngineManager } from "../../../rules-engine";
 import * as RuleModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/rules-engine-helper";
+import { _RulesManager } from "../../../helpers/ruleRegistry";
 import {sendLiveEvent} from "../../../utils"
 
 export namespace IToggleRuleAction {
