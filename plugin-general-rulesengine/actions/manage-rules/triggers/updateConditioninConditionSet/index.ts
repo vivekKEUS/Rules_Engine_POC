@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../../helpers/rules-engine-helper";
 // import { RulesEngineManager } from "../../../../rules-engine";
 import {sendLiveEvent} from "../../../../utils"
 
@@ -58,7 +58,7 @@ class UpdateConditionInConditionSetAction {
 
       if(res.success){
 
-        _RulesManager.updateRules()
+        RuleRegistry.updateRules()
       }
       sendLiveEvent(ctx, "update", "rules")
 

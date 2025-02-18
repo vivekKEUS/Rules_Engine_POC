@@ -5,7 +5,7 @@ import {
   RuleManager,
   RulesConditionManager,
 } from "./actions/manage-rules";
-import { RuleRegistry } from "./helpers/ruleRegistry";
+import { RuleRegistry } from "./helpers/rules-engine-helper";
 import { _RulesEngine } from "./rules-engine";
 import type {IRoutineSet } from "./models/kiotp_rules_engine_model";
 import { GetFactsTriggerAction } from "./actions/get-facts-triggers";

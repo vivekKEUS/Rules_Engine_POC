@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../helpers/rules-engine-helper";
 import { GetMapping } from "./getMapping";
 import mongoose from "mongoose";
 import type { IRule } from "../../../models/kiotp_rules_engine_model";
@@ -47,7 +47,7 @@ class AddRuleAction {
 
       if (addRes.success) {
         console.info("[AddRuleAction] Rule Successfully Inserted into MongoDB");
-        _RulesManager.updateRules();
+        RuleRegistry.updateRules();
       } else {
         console.error("[AddRuleAction] Rule Insertion Failed", "Error:", addRes.error);
       }

@@ -1,5 +1,5 @@
 import { Engine} from "json-rules-engine";
-import { RuleRegistry } from "./helpers/ruleRegistry";
+import { RuleRegistry } from "./helpers/rules-engine-helper";
 
 
 interface IExecuteParams{

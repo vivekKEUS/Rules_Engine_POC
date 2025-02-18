@@ -1,7 +1,7 @@
 import { Context } from "moleculer";
 // import { RulesEngineManager } from "../../../rules-engine";
 import * as RuleModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../helpers/rules-engine-helper";
 import {sendLiveEvent} from "../../../utils"
 
 export namespace IToggleRuleAction {
@@ -51,7 +51,7 @@ class ToggleRuleAction {
         await RuleModels.Methods.updateRule(ruleToEdit);
 
       }
-      _RulesManager.updateRules()
+      RuleRegistry.updateRules()
       // await RulesEngineManager.toggleRule(params.ruleId);
       sendLiveEvent(ctx, "update", "rules")
 

@@ -1,7 +1,7 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../../models/kiotp_rules_engine_model";
 import { RuleConditionOperations } from "../../constants";
-import { _RulesManager } from "../../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../../helpers/rules-engine-helper";
 
 export namespace IAddConditionToConditionSet {
   export interface Request {
@@ -72,7 +72,7 @@ class AddConditionToConditionSet {
 
       if(res.success) {
 
-        _RulesManager.updateRules()
+        RuleRegistry.updateRules()
       }
 
       return res;

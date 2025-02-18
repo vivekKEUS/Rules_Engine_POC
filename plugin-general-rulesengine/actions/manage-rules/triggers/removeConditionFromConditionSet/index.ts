@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../../helpers/rules-engine-helper";
 import {sendLiveEvent} from "../../../../utils"
 
 export namespace IRemoveConditionFromConditionSet {
@@ -57,7 +57,7 @@ class RemoveConditionFromConditionSet {
       );
       
       if(removeRes.success){
-        _RulesManager.updateRules()
+        RuleRegistry.updateRules()
       }
       sendLiveEvent(ctx, "update", "rules")
 

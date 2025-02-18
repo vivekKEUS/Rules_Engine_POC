@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../helpers/rules-engine-helper";
 import {sendLiveEvent} from "../../../utils"
 
 export namespace IUpdateActionInRuleAction {
@@ -44,7 +44,7 @@ class UpdateActionInRuleAction {
           error: "ruleId and action.id is required to update action",
         };
 
-          _RulesManager.updateRules()
+          RuleRegistry.updateRules()
         
 
       return await RulesDbModels.RuleMethods.updateAction(

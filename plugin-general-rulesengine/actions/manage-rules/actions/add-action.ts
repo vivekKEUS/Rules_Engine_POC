@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import { RuleMethods, IAction } from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../helpers/rules-engine-helper";
 import { ObjectId } from "mongodb";
 
 // Define request and response interfaces with proper typing
@@ -109,7 +109,7 @@ class AddActionToRuleAction {
       // Update rules if action was added successfully
       if (addResult.success) {
         try {
-          await _RulesManager.updateRules();
+          await RuleRegistry.updateRules();
         } catch (updateError: unknown) {
           console.error("Failed to update rules:", getErrorMessage(updateError));
           // Note: We don't return error here as the action was already added successfully

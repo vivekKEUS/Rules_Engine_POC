@@ -1,6 +1,6 @@
 import { Context } from "moleculer";
 import * as RulesDbModels from "../../../models/kiotp_rules_engine_model";
-import { _RulesManager } from "../../../helpers/ruleRegistry";
+import { RuleRegistry } from "../../../helpers/rules-engine-helper";
 import { GetMapping } from "./getMapping";
 
 export namespace IUpdateRuleAction {
@@ -47,7 +47,7 @@ class UpdateRuleAction {
       let res = await RulesDbModels.RuleMethods.updateRule(params);
       
       if(res.success){
-        _RulesManager.updateRules()
+        RuleRegistry.updateRules()
       }
       return res;
     } catch (err) {

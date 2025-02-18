@@ -7,9 +7,9 @@ import type {
 import * as RuleModels from "../models/kiotp_rules_engine_model";
 import { GetRulesAction } from "../actions/manage-rules/rules";
 import { ServiceBroker } from "moleculer";
-import { ru } from "@faker-js/faker";
 
 type TRule = RuleModels.IRule;
+
 class RuleRegistry {
   private static rulesMap: Map<string, Rule> = new Map(); //mapping of rule name to rule
   public static broker: ServiceBroker;
@@ -74,11 +74,11 @@ class RuleRegistry {
       );
 
       for (const fact of facts) {
-        if (listsOfFactNames.in(fact)) {
+        if (listsOfFactNames.indexOf(fact)!=-1) {
           console.log(
             `[RuleRegistry] Fact ${fact} matches rule ${rule.getName()}`
           );
-          dependentRules.add(rule.rule);
+          dependentRules.add(rule.getRuleData());
           break;
         }
       }
@@ -101,10 +101,11 @@ class RuleRegistry {
     }
   }
 }
+
 class Rule {
   private rule: TRule;
   private ruleProperties: RuleProperties;
-  private facts: Map<string,Record<any,any>> = new Map(); //store facts with their params, params are used in calculating the present value of fact
+  private factToParams: Map<string,Record<any,any>> = new Map(); //store facts with their params, params are used in calculating the present value of fact
 
   constructor(rule: TRule) {
     this.rule = rule;
@@ -130,10 +131,10 @@ class Rule {
   }
 
   public hasFact(fact: string): boolean {
-    return this.factSet.has(fact);
+    return this.factToParams.has(fact);
   }
   public getFacts():string[]{
-    return this.factSet
+    return [...this.factToParams.keys()];
   }
 
   private buildConditions() {
@@ -147,7 +148,8 @@ class Rule {
           continue;
         }
         nestedCondition.any.push(this.formFactCondition(condition));
-        this.factSet.add(condition.factName);
+        //very important line, don't change the below line, else everything will break
+        this.factToParams.set(condition.factName,condition.params||{})
       }
       (this.ruleProperties.conditions as AllConditions).all.push(nestedCondition);
     }
@@ -166,13 +168,14 @@ class Rule {
   }
 
   public updateFacts(engine: Engine) {
-    for (const fact of this.factSet) {
-      this.updateFactState(engine, fact);
+    for (const [factName,params] of this.factToParams.entries()) {
+      this.updateFactState(engine, factName,params);
     }
   }
 
   private async updateFactState(engine: Engine, fact: string, params: Record<any,any>) {
     const fetchFactState = async (params: Record<any, any>, almanac: Almanac) => {
+      console.log(`params`, params)
       try {
         const state = await RuleRegistry.broker.call(
           `1.0.0.${params.serviceId}.${params.factStateAction}`,
