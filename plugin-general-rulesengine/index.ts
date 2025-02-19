@@ -125,15 +125,10 @@ export class RulesEngineService extends Service {
           group: `${this.broker.namespace}.${PluginConfig.ID}.p2.facts.state.changed`,
           context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
-            //@ts-ignore
-            if (!this.eventExecuted) {
               console.log("------RULES ENGINE CHANNEL RECIEVED A MESSAGE-----");
               //@ts-ignore
               this.factChangeEventHandler(ctx);
-              //@ts-ignore
-              this.eventExecuted = true;
             }
-          },
         },
         "p2.new.service.added": {
           async handler(ctx: Context) {

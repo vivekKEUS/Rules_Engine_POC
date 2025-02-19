@@ -7,8 +7,7 @@ import { randomUUIDv7 } from "bun";
 import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
 import { lightService } from "./plugin-lighting";
-import { connectToDatabase } from "./model";
-
+import mongoose from "mongoose";
 const broker = new ServiceBroker(brokerConfig);
 
 broker.createService(RulesEngineService);
@@ -16,7 +15,14 @@ broker.createService(CalendarService);
 broker.createService(CronManager);
 broker.createService(FanService);
 broker.createService(lightService);
-await connectToDatabase();
+
+try {
+  await mongoose.connect("mongodb://10.1.4.238:27017/calendarDB", {});
+  console.log("Connected to MongoDB");
+} catch (error) {
+  console.error("Error connecting to MongoDB:", error);
+}
+
 const rule6 = {
   name: "TurnOnLightsThenTurnOnFans",
   description:
@@ -222,6 +228,87 @@ const rule8 = {
   enabled: true,
   priority: 5,
 };
+const rule9 = {
+  name: "AppleTVPlay",
+  description:"If Apple TV is playing, turn off the workstation tracklights",
+  conditionSets: [
+    {
+      name: "Apple TV Play Starter",
+      conditions: [
+        {
+          name: "TV playing Condition",
+          factName: "appletv-playing-state",
+          operation: "equal",
+          factValue: "playing",
+          serviceId: "kiotp.plugins.core.deepmedia.tv.appletv",
+          factStateAction: "GetPlayFactState",
+        },
+      ],
+    },
+  ],
+  event: {
+    type: "Apple TV Play Success",
+    params: [
+      {
+        order: 0,
+        routines: [
+          {
+            serviceId: "",
+            executionName: "Track-Light-On",
+            moleculerEvent: "p1.trigger-mainhub-scene-state-change",
+            executionStrategy: "durable",
+            customExecutionData: {
+              sceneId: "3PsWpGjXvC-172",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  enabled: true,
+  priority: 5,
+};
+const rule10 = {
+  name: "AppleTVPause",
+  description:"If Apple TV is paused, turn on the workstation tracklights",
+  conditionSets: [
+    {
+      name: "Apple TV Pause Starter",
+      conditions: [
+        {
+          name: "TV paused Condition",
+          factName: "appletv-paused-state",
+          operation: "equal",
+          factValue: "paused",
+          serviceId: "kiotp.plugins.core.deepmedia.tv.appletv",
+          factStateAction: "GetPlayFactState",
+        },
+      ],
+    },
+  ],
+  event: {
+    type: "Apple TV Pause Success",
+    params: [
+      {
+        order: 0,
+        routines: [
+          {
+            serviceId: "",
+            executionName: "Track-Light-Off",
+            moleculerEvent: "p1.trigger-mainhub-scene-state-change",
+            executionStrategy: "durable",
+            customExecutionData: {
+              sceneId: "3PsWpGjXvC-171",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  enabled: true,
+  priority: 5,
+};
+
 
 broker
   .start()
