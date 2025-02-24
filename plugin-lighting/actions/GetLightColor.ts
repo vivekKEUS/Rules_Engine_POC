@@ -1,33 +1,30 @@
 import type { Context } from "moleculer";
-import type { IResponse } from "../../types"
-import { FACTS, COLORS} from "../constants";
+import type { IResponse } from "../../types";
+import { LightMethods} from "../models";
 export class GetLightColor {
     static async handler(ctx: Context): Promise<IResponse> {
         try {
-            //get the deviceID from ctx.params
-            let data: Record<string, any> = {}
-            let i = Math.random()
-            let deviceColor = ""
-            if (i <= 0.33){
-                deviceColor = COLORS.BLUE
-            }else if(i <= 0.66){
-                deviceColor = COLORS.RED
-            }else{
-                deviceColor = COLORS.GREEN
+            //@ts-ignore
+            const deviceId = ctx.params?.deviceId;
+            if (!deviceId) {
+                return {
+                    success: false,
+                    error: "Missing deviceId",
+                };
             }
-            data[FACTS.BULB_COLOR] = deviceColor
+
+            const { success, data: lightData } = await LightMethods.getColor(deviceId);
 
             return {
-                success: true,
-                data: data
-            }
+                success,
+                data: lightData?.LightColor,
+            };
         } catch (err) {
-            console.error(err);
+            console.error("[GetLightColor] Error:", err);
             return {
                 success: false,
-                error: err?.toString()
-            }
+                error: err?.toString(),
+            };
         }
     }
 }
-

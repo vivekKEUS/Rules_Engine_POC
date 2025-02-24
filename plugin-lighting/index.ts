@@ -5,13 +5,17 @@ import { GetFactsTriggerAction } from "./actions/get-facts-trigger";
 import { GetLightState } from "./actions/GetLightState";
 import { GetLightColor } from "./actions/GetLightColor";
 import { GetLightBrightness } from "./actions/GetLightBrightness";
+import { LightMethods } from "./models";
+import { ChangeLightBrightness } from "./actions/ChangeLightBrightness";
+import { ChangeLightColor } from "./actions/ChangeLightColor";
+import { ChangeLightState } from "./actions/ChangeLightState";
 export class lightService extends Service{
     static broker: ServiceBroker
     constructor(_broker : ServiceBroker){
         super(_broker)
         this.broker = _broker;
         this.parseServiceSchema({
-            name: PluginConfig.ID,
+            name: PluginConfig.NAME,
             version: GetVersionStr(PluginConfig.VERSION),
             settings: {},
             dependencies: [],
@@ -23,18 +27,9 @@ export class lightService extends Service{
                 GetLightState: GetLightState.handler,
                 GetLightColor: GetLightColor.handler,
                 GetLightBrightness: GetLightBrightness.handler,
-                BulbStateChange: async (ctx: Context) => {
-                    await AsyncDelay(3000)
-                    console.log("Light state changed",ctx.params);
-                    //@ts-ignore
-                    return {success: true, data: `Light is turned ${ctx.params.state}`}
-                },
-                BulbColorChange: async (ctx: Context) => {
-                    await AsyncDelay(3000)
-                    console.log("Light color changed",ctx.params);
-                    //@ts-ignore
-                    return {success: true, data: `Light color changed to ${ctx.params.color}`}
-                },
+                ChangeLightBrightness: ChangeLightBrightness.handler,
+                ChangeLightColor: ChangeLightColor.handler,
+                ChangeLightState: ChangeLightState.handler,
             },
             channels: {
                 "p2.trigger-bulb-state-change": {
@@ -65,6 +60,11 @@ export class lightService extends Service{
                   },
                 },
               },
+            started: this.serviceStarted,
         });
+    }
+    serviceStarted(){
+      //add some dummy data in it
+      LightMethods.insertDefaultLights()
     }
 }

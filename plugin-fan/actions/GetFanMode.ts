@@ -1,35 +1,31 @@
 import type { Context } from "moleculer";
-import type { IResponse } from "../../types"
-import { FACTS, MODES, POWER } from "../constants";
-export class GetFanMode{
+import type { IResponse } from "../../types";
+import { FACTS, POWER } from "../constants";
+import { FanMethods} from "../models";
+export class GetFanMode {
     static async handler(ctx: Context): Promise<IResponse> {
         try {
-            //get the deviceID from ctx.params
-            let data: Record<string, any> = {}
-            // let applicance = await DeepmediaDeviceManagerClass.getDeepmediaDeviceManager().getAppliances(executeParams.id)
-            
-            //for now I getting a random state for the device between on/off
-            let i = Math.random()
-            let deviceMode = "null"
-            if (i <= 0.33){
-                deviceMode = MODES.SLEEP
-            }else if(i <= 0.66){
-                deviceMode = MODES.NORMAL
-            }else{
-                deviceMode = MODES.TURBO
+            //@ts-ignore
+            const deviceId = ctx.params?.deviceId;
+            if (!deviceId) {
+                return {
+                    success: false,
+                    error: "Missing deviceId",
+                };
             }
-            data[FACTS.MODE] = deviceMode;
+
+            const { success, data: fanData } = await FanMethods.getMode(deviceId);
 
             return {
-                success: true,
-                data: data
-            }
+                success,
+                data: fanData?.fanMode,
+            };
         } catch (err) {
-            console.error(err);
+            console.error("[GetFanMode] Error:", err);
             return {
                 success: false,
-                error: err?.toString()
-            }
+                error: err?.toString(),
+            };
         }
     }
 }

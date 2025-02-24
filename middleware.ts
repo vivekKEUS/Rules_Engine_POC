@@ -10,7 +10,6 @@ interface ichannelsmiddleware {
     namespace: string;
 }
 export const getchannelsmiddleware = ({
-    natsurl = `nats://172.24.128.1:6969`,
     streamname = "kiotp-default",
     namespace,
     subjects = [`p1.>`, `p2.>`, `default.>`],
@@ -27,7 +26,7 @@ export const getchannelsmiddleware = ({
             //@ts-ignore
             options: {
                 nats: {
-                    url: "nats://172.24.128.1:6969",
+                    url: "nats://10.1.4.88:6969",
                     connectionoptions: {
                     // token: "keus-iot-platform",
                     debug: debug

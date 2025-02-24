@@ -96,7 +96,7 @@ class RuleRegistry {
       }
       rule.updateFacts(engine);
       let ruleProps = rule.getRuleProperties();
-      console.log("[RuleRegistry] Adding rule to engine: ", ruleProps);
+      console.log("[RuleRegistry] Adding rule to engine: ", ruleProps.name);
       engine.addRule(ruleProps);
     }
   }
@@ -181,7 +181,7 @@ class Rule {
       console.log(`params`, params)
       try {
         const state = await RuleRegistry.broker.call(
-          `1.0.0.${params.serviceId}.${params.factStateAction}`,
+          `${params.serviceId}.${params.factStateAction}`,
           params
         );
         //@ts-ignore

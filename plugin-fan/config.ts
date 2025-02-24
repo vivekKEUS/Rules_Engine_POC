@@ -12,8 +12,7 @@ export declare enum ApplianceType {
     SYSTEM = "SYSTEM"
 }
 
-export const ID = 'kiotp.plugins.general.fan';
-export const NAME = "PLUGIN_FAN"
+export const NAME = 'kiotp.plugins.general.fan';
 export const DISPLAY_NAME = 'FAN SERVICE';
 export const DESCRIPTION = `Fan Service is responsible for starting fans, scheduling fan automations and listening for new events regarding fan movement`;
 export const VERSION = {

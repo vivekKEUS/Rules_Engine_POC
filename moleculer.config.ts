@@ -1,10 +1,10 @@
 import { Errors, ServiceBroker } from "moleculer";
 import { getchannelsmiddleware } from "./middleware";
+const TracingMiddleware = require("@moleculer/channels").Tracing;
 export const brokerConfig = {
 	namespace: "WEEKND",
 	nodeID: "node-1",
 	metadata: {},
-
 	logger: {
 		type: "Console",
 		options: {
@@ -24,9 +24,9 @@ export const brokerConfig = {
 	transporter: {
 		type: "NATS",
 		options: {
-		  url: "nats://172.24.128.1:6969",
+		  url: "nats://10.1.4.88:6969",
 		//   token: "keus-iot-platform",
-		}
+		},
 	  },
 	
 
@@ -139,7 +139,7 @@ export const brokerConfig = {
 	},
 
 	// Register custom middlewares
-	middlewares: [getchannelsmiddleware({namespace:"WEEKND"}) ],
+	middlewares: [getchannelsmiddleware({namespace:"WEEKND"}), TracingMiddleware() ],
 
 	// Register custom REPL commands.
 	replCommands: null,

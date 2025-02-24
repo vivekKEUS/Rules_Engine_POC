@@ -7,20 +7,20 @@ import {
 } from "./actions/manage-rules";
 import { RuleRegistry } from "./helpers/rules-engine-helper";
 import { _RulesEngine } from "./rules-engine";
-import type {IRoutineSet } from "./models/kiotp_rules_engine_model";
+import type { IRoutineSet } from "./models/kiotp_rules_engine_model";
 import { GetFactsTriggerAction } from "./actions/get-facts-triggers";
 import { GetVersionStr } from "../types";
-import { buildPayload, AsyncDelay } from "../types";
+import { AsyncDelay } from "../types";
 import { AddFacts } from "./models/kiotp_facts_triggers_discovery";
 import { AddTriggers } from "./models/kiotp_facts_triggers_discovery";
-import { getNewService } from "./actions/get-facts-triggers/getNewService";
-export class RulesEngineService extends Service {
+import { randomUUIDv7 } from "bun";
+export class PluginService extends Service {
   mongoFlag: boolean;
   constructor(broker: ServiceBroker) {
     super(broker);
     this.mongoFlag = true;
     this.parseServiceSchema({
-      name: PluginConfig.ID,
+      name: PluginConfig.NAME,
       version: GetVersionStr(PluginConfig.VERSION),
       meta: {
         scalable: false,
@@ -37,7 +37,6 @@ export class RulesEngineService extends Service {
         DeleteRule: RuleManager.RemoveRuleAction.handler,
         GetRules: RuleManager.GetRulesAction.handler,
         UpdateRule: RuleManager.UpdateRuleAction.handler,
-        ToggleRule: RuleManager.ToggleRuleAction.handler,
         AddActionToRule: RuleActionManager.AddActionToRuleAction.handler,
         DeleteActionInRule:
           RuleActionManager.RemoveActionFromRuleAction.handler,
@@ -59,107 +58,172 @@ export class RulesEngineService extends Service {
         getMapping: RuleManager.GetMapping.handler,
         AddFacts: AddFacts,
         AddTriggers: AddTriggers,
+        AsyncDelay: AsyncDelay,
       },
       methods: {
         processActions: async (routineSets: IRoutineSet[]) => {
           for (const routineSet of routineSets) {
             if (routineSet.delay) {
-              console.log(`-------- Delaying next routine by ${routineSet.delay} seconds`);
-              await AsyncDelay(routineSet.delay * 1000);
+              console.info(
+                `[RulesEngine] Delaying next routine by ${routineSet.delay} seconds`
+              );
+              await AsyncDelay(routineSet.delay);
             }
             if (routineSet.routines) {
-              console.log("Processing routines:", routineSet.routines);
+              console.info(
+                "{[RulesEngine] Processing routines:",
+                routineSet.routines
+              );
 
-              const executionPromises: Promise<any>[] = routineSet.routines.map(async (execution) => {
-                try {
-                  console.log("-------- Emitting Durable Event");
-                  let payload = execution.customExecutionData;
-                  const actionPath = `1.0.0.${execution.serviceId}.${execution.action}`;
-                  console.log("Executing action:", actionPath);
-                  return broker.call(actionPath, payload);
-                } catch (err) {
-                  console.error("Failed to execute action:", execution.action, err);
+              const executionPromises: Promise<any>[] = routineSet.routines.map(
+                async (execution) => {
+                  try {
+                    let payload = execution.customExecutionData;
+                    if (execution.action) {
+                      const actionPath = `${execution.serviceId}.${execution.action}`;
+                      console.info(
+                        "[RulesEngine] Executing action:",
+                        actionPath
+                      );
+                      return this.broker.call(actionPath, payload,{
+                        meta:{
+                         
+                        }
+                      });
+                    } else if (
+                      execution.moleculerEvent &&
+                      execution.executionStrategy === "durable"
+                    ) {
+                      console.info(
+                        `[RulesEngine] Sending durable event: ${execution.moleculerEvent}`
+                      );
+                      return this.broker.sendToChannel(
+                        execution.moleculerEvent,
+                        execution.customExecutionData,
+                        {
+                          meta:{
+                            serviceId:execution.serviceId
+                          }
+                        }
+                      );
+                    } else if (
+                      execution.moleculerEvent &&
+                      execution.executionStrategy == "fireNforget"
+                    ) {
+                      console.info(
+                        `[RulesEngine] Sending fireNforget event: ${execution.moleculerEvent}`
+                      );
+                      return this.broker.emit(
+                        execution.moleculerEvent,
+                        execution.customExecutionData,{
+                          meta:{
+                            serviceId: execution.serviceId
+                          }
+                        }
+                      );
+                    }
+                  } catch (err) {
+                    console.error(
+                      "Failed to do execution:- ",
+                      execution.executionName,
+                      err
+                    );
+                  }
                 }
-              });
+              );
               await Promise.all(executionPromises);
-              console.log("Finished processing trigger set");
+              console.info("[RulesEngine] Finished processing trigger set");
             }
           }
         },
+
         factChangeEventHandler: async (ctx: Moleculer.Context) => {
-          console.log("----FACTS CHANGED EVENT HANDLER-------");
-          try {
-            let params = <{ id: string; facts: string[] }>ctx.params;
-            let _engine = new _RulesEngine();
-            let engineResponse = await _engine.execute(params);
-
-            if (engineResponse.events.length == 0) {
-              console.log("--------NO EVENTS MATCHED THE STATE----------");
-            }
-
-            engineResponse.events.forEach((event) => {
-              console.log(
-                "----EVENT MATCHED THE STATE CHANGE---",
-                event.type
-              );
-              if (!event.params?.actions) {
-                return;
+          console.info("[RulesEngine] Fact Change Detected");
+          // if (!this.eventExecuted) {
+            // this.eventExecuted = true
+            try {
+              let params = <{ id: string; facts: string[] }>ctx.params;
+              console.info("[RulesEngine] Start a new rulesEngine");
+              let _engine = new _RulesEngine();
+              let engineResponse = await _engine.execute(params);
+              if (engineResponse.events.length == 0) {
+                console.info(
+                  "[RulesEngine] No event occured due to current fact changes."
+                );
               }
-              this.processActions(event.params);
-            });
-          } catch (err) {
-            console.log("error while processing fact change event", err);
-          }
+              engineResponse.events.forEach(async (event) => {
+                console.info(
+                  "[RulesEngine] Due to facts change, triggering event ",
+                  event.type
+                );
+                await this.processActions(event.params as IRoutineSet[]); //typescript shenanigans
+              });
+            } catch (err) {
+              console.info(
+                "[RulesEngine] Error while processing fact change event",
+                err
+              );
+            }
+          // }else{
+          //   console.log("[RulesEngine] Event already executed")
+          //   this.eventExecuted = false
+          // }
         },
       },
       events: {
         "facts.state.changed": (ctx: Moleculer.Context) => {
-          console.log("forget-and-fire event")
+          console.info("forget-and-fire event");
           this.factChangeEventHandler(ctx);
         },
       },
       channels: {
-        "p2.facts.state.changed": {
-          group: `${this.broker.namespace}.${PluginConfig.ID}.p2.facts.state.changed`,
+        "p1.facts.state.changed": {
+          group: `${this.broker.namespace}.${PluginConfig.NAME}.p1.facts.state.changed`,
           context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
-              console.log("------RULES ENGINE CHANNEL RECIEVED A MESSAGE-----");
-              //@ts-ignore
-              this.factChangeEventHandler(ctx);
+            //@ts-ignore
+            let ruleHistory: Array<string> = ctx.meta.ruleHistory || [];
+
+            //@ts-ignore
+            if (ruleHistory.includes(ctx.meta.ruleName)) {
+              console.warn("Loop Detected! Already processed this event");
+              return;
             }
-        },
-        "p2.new.service.added": {
-          async handler(ctx: Context) {
-              console.log("------NEW SERVICE ADDED-----", ctx.params);
-              //@ts-ignore
-              AddFacts(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.FactName, ctx.params.FactValue);
-              //@ts-ignore
-              AddTriggers(ctx.params.ServiceId, ctx.params.ServiceVersion, ctx.params.TriggerName, ctx.params.TriggerAction, ctx.params.TriggerValue);
+            console.log(
+              "[RulesEngine] Message received on channel p1.facts.state.changed"
+            );
+            //@ts-ignore
+            this.factChangeEventHandler(ctx);
           },
-      },
+        },
+        "p2.facts.state.changed": {
+          group: `${this.broker.namespace}.${PluginConfig.NAME}.p2.facts.state.changed`,
+          context: true, // Unless not enabled it globally
+          async handler(ctx: Moleculer.Context) {
+            // @ts-ignore
+            let ruleHistory: Array<string> = ctx.meta.ruleHistory || [];
+
+            //@ts-ignore
+            if (ruleHistory.includes(ctx.meta.ruleName)) {
+              console.warn("Loop Detected! Already processed this event");
+              return;
+            }
+
+            console.log(
+              "[RulesEngine] Message received on channel p2.facts.state.changed"
+            );
+            console.log("Context.params=> ",ctx.params)
+            //@ts-ignore
+            this.factChangeEventHandler(ctx);
+          },
+        },
       },
       created: this.serviceCreated,
-      started: this.serviceStarted,
-      stopped: this.serviceStopped,
     });
   }
-
   async serviceCreated() {
-    this.logger.info(`${PluginConfig.NAME} Created`);
-    console.log("RULES DB STARTED");
+    console.info(`${PluginConfig.NAME} Created`);
     RuleRegistry.init(this.broker);
-    // let siteBroker = await startBridge(this.broker)
-  }
-
-  async serviceStarted() {
-    this.logger.info(`${PluginConfig.NAME} Started`);
-    console.log("Service Started for Rules Engine")
-    let ctx = Context.create(this.broker);
-    // await getNewService(this.broker);
-    // setInterval(()=>getNewService(this.broker), 30000) //30 seconds
-  }
-  serviceStopped() {
-    this.logger.info(`${PluginConfig.NAME} Stopped`);
   }
 }
 export { PluginConfig };

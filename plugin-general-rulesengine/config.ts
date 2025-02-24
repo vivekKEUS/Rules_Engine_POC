@@ -12,8 +12,7 @@ export declare enum ApplianceType {
     SYSTEM = "SYSTEM"
 }
 
-export const ID = 'kiotp.plugins.general.rulesengine';
-export const NAME = "PLUGIN_RULES_ENGINE"
+export const NAME = 'kiotp.plugins.general.rulesengine';
 export const DISPLAY_NAME = 'Rules Engine';
 export const DESCRIPTION = `Rules Engine gives flexibilty to add rules for devices and execute actions based on rules`;
 export const VERSION = {

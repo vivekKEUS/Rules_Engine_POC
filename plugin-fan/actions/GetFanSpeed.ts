@@ -1,33 +1,30 @@
 import type { Context } from "moleculer";
-import type { IResponse } from "../../types"
-import { FACTS, MODES, POWER, SPEEDS } from "../constants";
+import type { IResponse } from "../../types";
+import { FanMethods} from "../models";
 export class GetFanSpeed {
     static async handler(ctx: Context): Promise<IResponse> {
         try {
-            //get the deviceID from ctx.params
-            let data: Record<string, any> = {}
-            let i = Math.random()
-            let deviceSpeed = "null"
-            if (i <= 0.33){
-                deviceSpeed = SPEEDS.LOW
-            }else if(i <= 0.66){
-                deviceSpeed = SPEEDS.MEDIUM
-            }else{
-                deviceSpeed = SPEEDS.HIGH
+            //@ts-ignore
+            const deviceId = ctx.params?.deviceId;
+            if (!deviceId) {
+                return {
+                    success: false,
+                    error: "Missing deviceId",
+                };
             }
-            data[FACTS.MODE] = deviceSpeed;
+
+            const { success, data: fanData } = await FanMethods.getSpeed(deviceId);
 
             return {
-                success: true,
-                data: data
-            }
+                success,
+                data: fanData?.fanSpeed,
+            };
         } catch (err) {
-            console.error(err);
+            console.error("[GetFanSpeed] Error:", err);
             return {
                 success: false,
-                error: err?.toString()
-            }
+                error: err?.toString(),
+            };
         }
     }
 }
-

@@ -1,35 +1,30 @@
 import type { Context } from "moleculer";
-import type { IResponse } from "../../types"
-import { FACTS, BRIGHTNESS} from "../constants";
-export class GetLightBrightness{
+import type { IResponse } from "../../types";
+import { LightMethods} from "../models";
+export class GetLightBrightness {
     static async handler(ctx: Context): Promise<IResponse> {
         try {
-            //get the deviceID from ctx.params
-            let data: Record<string, any> = {}
-            // let applicance = await DeepmediaDeviceManagerClass.getDeepmediaDeviceManager().getAppliances(executeParams.id)
-            
-            //for now I getting a random state for the device between on/off
-            let i = Math.random()
-            let deviceBrightness = "null"
-            if (i <= 0.33){
-                deviceBrightness = BRIGHTNESS.LOW
-            }else if(i <= 0.66){
-                deviceBrightness = BRIGHTNESS.MEDIUM
-            }else{
-                deviceBrightness = BRIGHTNESS.HIGH
+            //@ts-ignore
+            const deviceId = ctx.params?.deviceId;
+            if (!deviceId) {
+                return {
+                    success: false,
+                    error: "Missing deviceId",
+                };
             }
-            data[FACTS.BRIGHTNESS] = deviceBrightness;
+
+            const { success, data: lightData } = await LightMethods.getBrightness(deviceId);
 
             return {
-                success: true,
-                data: data
-            }
+                success,
+                data: lightData?.LightBrightness,
+            };
         } catch (err) {
-            console.error(err);
+            console.error("[GetLightBrightness] Error:", err);
             return {
                 success: false,
-                error: err?.toString()
-            }
+                error: err?.toString(),
+            };
         }
     }
 }
