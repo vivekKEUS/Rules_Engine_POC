@@ -16,11 +16,9 @@ import { AddTriggers } from "./models/kiotp_facts_triggers_discovery";
 import { getNewService } from "./actions/get-facts-triggers/getNewService";
 export class RulesEngineService extends Service {
   mongoFlag: boolean;
-  eventExecuted: boolean;
   constructor(broker: ServiceBroker) {
     super(broker);
     this.mongoFlag = true;
-    this.eventExecuted = false;
     this.parseServiceSchema({
       name: PluginConfig.ID,
       version: GetVersionStr(PluginConfig.VERSION),
