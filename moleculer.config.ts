@@ -1,5 +1,6 @@
 import { Errors, ServiceBroker } from "moleculer";
 import { getchannelsmiddleware } from "./middleware";
+import { contextInjectorMiddleware } from "./contextInjectorMiddleware";
 const TracingMiddleware = require("@moleculer/channels").Tracing;
 export const brokerConfig = {
 	namespace: "WEEKND",
@@ -139,7 +140,7 @@ export const brokerConfig = {
 	},
 
 	// Register custom middlewares
-	middlewares: [getchannelsmiddleware({namespace:"WEEKND"}), TracingMiddleware() ],
+	middlewares: [contextInjectorMiddleware, getchannelsmiddleware({namespace:"WEEKND"}), TracingMiddleware() ],
 
 	// Register custom REPL commands.
 	replCommands: null,
