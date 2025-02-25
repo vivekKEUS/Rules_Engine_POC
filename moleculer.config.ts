@@ -24,7 +24,7 @@ export const brokerConfig = {
 	transporter: {
 		type: "NATS",
 		options: {
-		  url: "nats://10.1.4.88:6969",
+		  url: "nats://172.24.128.1:6969",
 		//   token: "keus-iot-platform",
 		},
 	  },

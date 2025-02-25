@@ -15,7 +15,7 @@ export class ChangeLightColor {
       console.log("[ChangeLightColor] Context.Meta", ctx.meta)
       ctx.broker.sendToChannel("p2.facts.state.changed", {
         facts: [FACTS.LIGHT_COLOR],
-      });
+      },{ctx});
       return { success: true, data: updatedLight};
     } catch (err) {
       console.error("[ChangeLightColor] Error:", err);

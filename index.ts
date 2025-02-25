@@ -44,7 +44,6 @@ const rule6 = {
             serviceId: "1.0.0.kiotp.plugins.general.lighting",
             executionName: "ChangeLightState",
             action: "ChangeLightState",
-            metadata : {ruleName: "TurnOnLightWhenFanOn"},
             customExecutionData: {
               deviceId: "Light-L2",
               LightState: "on",
@@ -81,10 +80,6 @@ const rule7 = {
   event: {
     type: "Light On Color Change",
     params: [
-      {
-        order: 1,
-        delay: 10,
-      },
       {
         order: 2,
         routines: [

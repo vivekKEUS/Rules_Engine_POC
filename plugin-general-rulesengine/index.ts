@@ -13,7 +13,7 @@ import { GetVersionStr } from "../types";
 import { AsyncDelay } from "../types";
 import { AddFacts } from "./models/kiotp_facts_triggers_discovery";
 import { AddTriggers } from "./models/kiotp_facts_triggers_discovery";
-import { randomUUIDv7 } from "bun";
+import { v4 as uuidv4, v4 } from "uuid";
 export class PluginService extends Service {
   mongoFlag: boolean;
   constructor(broker: ServiceBroker) {
@@ -61,7 +61,7 @@ export class PluginService extends Service {
         AsyncDelay: AsyncDelay,
       },
       methods: {
-        processActions: async (routineSets: IRoutineSet[]) => {
+        processActions: async (routineSets: IRoutineSet[], metadata: Object) => {
           for (const routineSet of routineSets) {
             if (routineSet.delay) {
               console.info(
@@ -87,7 +87,8 @@ export class PluginService extends Service {
                       );
                       return this.broker.call(actionPath, payload,{
                         meta:{
-                         
+                        [v4()]: execution.serviceId,
+                        ...metadata
                         }
                       });
                     } else if (
@@ -102,7 +103,8 @@ export class PluginService extends Service {
                         execution.customExecutionData,
                         {
                           meta:{
-                            serviceId:execution.serviceId
+                            serviceId:execution.serviceId,
+                            ...metadata
                           }
                         }
                       );
@@ -117,7 +119,8 @@ export class PluginService extends Service {
                         execution.moleculerEvent,
                         execution.customExecutionData,{
                           meta:{
-                            serviceId: execution.serviceId
+                            serviceId: execution.serviceId,
+                            ...metadata
                           }
                         }
                       );
@@ -145,7 +148,13 @@ export class PluginService extends Service {
               let params = <{ id: string; facts: string[] }>ctx.params;
               console.info("[RulesEngine] Start a new rulesEngine");
               let _engine = new _RulesEngine();
-              let engineResponse = await _engine.execute(params);
+              if("engine" in ctx.meta){
+                console.error("[RulesEngine] Nested Rule detected, stopping the execution")
+                return; //nested rule triggering
+              }
+              ctx.meta = {...ctx.meta, engine: 1}
+              console.log("[FactChangeHandler] Context.Meta", ctx.meta)
+              let engineResponse = await _engine.execute(ctx);
               if (engineResponse.events.length == 0) {
                 console.info(
                   "[RulesEngine] No event occured due to current fact changes."
@@ -156,7 +165,7 @@ export class PluginService extends Service {
                   "[RulesEngine] Due to facts change, triggering event ",
                   event.type
                 );
-                await this.processActions(event.params as IRoutineSet[]); //typescript shenanigans
+                await this.processActions(event.params as IRoutineSet[],ctx.meta); //typescript shenanigans
               });
             } catch (err) {
               console.info(
@@ -183,7 +192,7 @@ export class PluginService extends Service {
           async handler(ctx: Moleculer.Context) {
             //@ts-ignore
             let ruleHistory: Array<string> = ctx.meta.ruleHistory || [];
-
+            console.log("[Channels] Context.Meta = ", ctx.meta)
             //@ts-ignore
             if (ruleHistory.includes(ctx.meta.ruleName)) {
               console.warn("Loop Detected! Already processed this event");
@@ -202,7 +211,7 @@ export class PluginService extends Service {
           async handler(ctx: Moleculer.Context) {
             // @ts-ignore
             let ruleHistory: Array<string> = ctx.meta.ruleHistory || [];
-
+            console.log("[Channels] Context.Meta = ", ctx.meta)
             //@ts-ignore
             if (ruleHistory.includes(ctx.meta.ruleName)) {
               console.warn("Loop Detected! Already processed this event");
