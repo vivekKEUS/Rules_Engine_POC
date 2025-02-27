@@ -8,16 +8,17 @@ export class ChangeFanMode {
     try {
       //@ts-ignore
       const { deviceId, FanMode } = ctx.params;
-      const updatedFan = await FanMethods.updateSpeed(deviceId, FanMode);
+      const updatedFan = await FanMethods.updateMode(deviceId, FanMode);
       if (!updatedFan) {
         return { success: false, error: "Fan not found" };
       }
       ctx.broker.sendToChannel("p2.facts.state.changed", {
         facts: [FACTS.MODE],
       });
+      console.log("[ChangeFanMode] Data :", updatedFan)
       return { success: true, data: updatedFan };
     } catch (err) {
-      console.error("[ChangeFanSpeed] Error:", err);
+      console.error("[ChangeFanMode] Error:", err);
       return { success: false, error: err?.toString() };
     }
   }

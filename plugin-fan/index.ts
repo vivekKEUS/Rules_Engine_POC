@@ -65,6 +65,6 @@ export class FanService extends Service {
           meta: {},
         }
       );
-    });
+    }, 2000);
   }
 }

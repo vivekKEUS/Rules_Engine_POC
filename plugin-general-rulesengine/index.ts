@@ -13,7 +13,7 @@ import { GetVersionStr } from "../types";
 import { AsyncDelay } from "../types";
 import { AddFacts } from "./models/kiotp_facts_triggers_discovery";
 import { AddTriggers } from "./models/kiotp_facts_triggers_discovery";
-import { v4 as uuidv4, v4 } from "uuid";
+import { executeRoutines, processDelay } from "../utils/processEvent";
 export class PluginService extends Service {
   mongoFlag: boolean;
   constructor(broker: ServiceBroker) {
@@ -64,78 +64,11 @@ export class PluginService extends Service {
         processActions: async (routineSets: IRoutineSet[], metadata: Object) => {
           for (const routineSet of routineSets) {
             if (routineSet.delay) {
-              console.info(
-                `[RulesEngine] Delaying next routine by ${routineSet.delay} seconds`
-              );
-              await AsyncDelay(routineSet.delay);
+              processDelay(this.broker,routineSet.delay)
             }
-            if (routineSet.routines) {
-              console.info(
-                "{[RulesEngine] Processing routines:",
-                routineSet.routines
-              );
-
-              const executionPromises: Promise<any>[] = routineSet.routines.map(
-                async (execution) => {
-                  try {
-                    let payload = execution.customExecutionData;
-                    if (execution.action) {
-                      const actionPath = `${execution.serviceId}.${execution.action}`;
-                      console.info(
-                        "[RulesEngine] Executing action:",
-                        actionPath
-                      );
-                      return this.broker.call(actionPath, payload,{
-                        meta:{
-                        [v4()]: execution.serviceId,
-                        ...metadata
-                        }
-                      });
-                    } else if (
-                      execution.moleculerEvent &&
-                      execution.executionStrategy === "durable"
-                    ) {
-                      console.info(
-                        `[RulesEngine] Sending durable event: ${execution.moleculerEvent}`
-                      );
-                      return this.broker.sendToChannel(
-                        execution.moleculerEvent,
-                        execution.customExecutionData,
-                        {
-                          meta:{
-                            serviceId:execution.serviceId,
-                            ...metadata
-                          }
-                        }
-                      );
-                    } else if (
-                      execution.moleculerEvent &&
-                      execution.executionStrategy == "fireNforget"
-                    ) {
-                      console.info(
-                        `[RulesEngine] Sending fireNforget event: ${execution.moleculerEvent}`
-                      );
-                      return this.broker.emit(
-                        execution.moleculerEvent,
-                        execution.customExecutionData,{
-                          meta:{
-                            serviceId: execution.serviceId,
-                            ...metadata
-                          }
-                        }
-                      );
-                    }
-                  } catch (err) {
-                    console.error(
-                      "Failed to do execution:- ",
-                      execution.executionName,
-                      err
-                    );
-                  }
-                }
-              );
-              await Promise.all(executionPromises);
-              console.info("[RulesEngine] Finished processing trigger set");
+            else if (routineSet.routines) {
+              await executeRoutines(this.broker,routineSet.routines,metadata)
+              broker.logger.info("[RulesEngine] Finished processing trigger set");
             }
           }
         },

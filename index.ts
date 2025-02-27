@@ -4,6 +4,7 @@ import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
 import { lightService as LightService } from "./plugin-lighting";
 import mongoose from "mongoose";
+import { delay } from "nats";
 const broker = new ServiceBroker(brokerConfig);
 
 try {
@@ -56,29 +57,33 @@ const rule6 = {
         delay: 5,
       },
       {
-        order:2,
-        serviceId: "1.0.0.kiotp.plugins.general.fan",
-        executionName: "Change Fan Mode",
-        executionStrategy: "durable",
-        moleculerEvent: "p2.trigger-fan-mode-change",
-        customeExecutionData: {
-          deviceId: "Fan-F1",
-          FanMode: "turbo",
-        },
+        order: 2,
+        routines: [
+          {
+            serviceId: "1.0.0.kiotp.plugins.general.fan",
+            executionName: "ChangeFanMode",
+            executionStrategy: "durable",
+            moleculerEvent: "p2.trigger-fan-mode-change",
+            customExecutionData: {
+              deviceId: "Fan-F1",
+              FanMode: "turbo",
+            },
+          },
+        ],
       },
     ],
   },
   enabled: true,
   priority: 10,
 };
+broker.createService(RulesEningeService);
+broker.createService(FanService);
+broker.createService(LightService);
 
 broker
   .start()
   .then(async () => {
     console.log("Broker Started");
-    broker.createService(RulesEningeService);
-    broker.createService(FanService);
-    broker.createService(LightService);
     try {
       await broker.waitForServices("1.0.0.kiotp.plugins.general.rulesengine");
       await broker.call(

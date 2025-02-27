@@ -54,3 +54,4 @@ export const getchannelsmiddleware = ({
         context: true,
     })
 }
+export const sendmethodname = "sendToChannel"
