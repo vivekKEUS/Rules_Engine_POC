@@ -186,25 +186,6 @@ export class PluginService extends Service {
         },
       },
       channels: {
-        "p1.facts.state.changed": {
-          group: `${this.broker.namespace}.${PluginConfig.NAME}.p1.facts.state.changed`,
-          context: true, // Unless not enabled it globally
-          async handler(ctx: Moleculer.Context) {
-            //@ts-ignore
-            let ruleHistory: Array<string> = ctx.meta.ruleHistory || [];
-            console.log("[Channels] Context.Meta = ", ctx.meta)
-            //@ts-ignore
-            if (ruleHistory.includes(ctx.meta.ruleName)) {
-              console.warn("Loop Detected! Already processed this event");
-              return;
-            }
-            console.log(
-              "[RulesEngine] Message received on channel p1.facts.state.changed"
-            );
-            //@ts-ignore
-            this.factChangeEventHandler(ctx);
-          },
-        },
         "p2.facts.state.changed": {
           group: `${this.broker.namespace}.${PluginConfig.NAME}.p2.facts.state.changed`,
           context: true, // Unless not enabled it globally
@@ -226,6 +207,7 @@ export class PluginService extends Service {
             this.factChangeEventHandler(ctx);
           },
         },
+        
       },
       created: this.serviceCreated,
     });

@@ -35,7 +35,7 @@ const rule6 = {
     },
   ],
   event: {
-    type: "Turn on Lights",
+    type: "Turn on Lights, and then get context from turn on lights, to change mode of a specific fan",
     params: [
       {
         order: 0,
@@ -51,103 +51,25 @@ const rule6 = {
           },
         ],
       },
+      {
+        order: 1,
+        delay:5,
+      },
+      {
+        serviceId: "1.0.0.kiotp.plugins.general.fan",
+        executionName: "Change Fan Mode",
+        executionStrategy : "durable",
+        moleculerEvent: "p2.trigger-fan-mode-change",
+        customeExecutionData: {
+          deviceId: "Fan-F1",
+          FanMode: "turbo",
+        }
+      }
     ],
   },
   enabled: true,
   priority: 10,
 };
-
-const rule7 = {
-  name: "ChangeLightColorWhenLightOn",
-  description: "If light is on for 10 seconds, change its color to red.",
-  conditionSets: [
-    {
-      name: "Light On Check",
-      conditions: [
-        {
-          factName: "light-state",
-          operation: "equal",
-          factValue: "on",
-          serviceId: "1.0.0.kiotp.plugins.general.lighting",
-          factStateAction: "GetLightState",
-          params :{
-            deviceId: "Light-L2",
-          }
-        },
-      ],
-    },
-  ],
-  event: {
-    type: "Light On Color Change",
-    params: [
-      {
-        order: 2,
-        routines: [
-          {
-            serviceId: "1.0.0.kiotp.plugins.general.lighting",
-            executionName: "ChangeLightColor",
-            metadata : {ruleName: "ChangeLightColorWhenLightOn"},
-            action: "ChangeLightColor",
-            customExecutionData: {
-              deviceId: "Light-L2",
-              LightColor :"red",
-            },
-          },
-        ],
-      },
-    ],
-  },
-  enabled: true,
-  priority: 8,
-};
-
-const rule8 = {
-  name: "TurnOnFanWhenLightRed",
-  description: "If light is red, turn on the fan.",
-  conditionSets: [
-    {
-      name: "Light Red Check",
-      conditions: [
-        {
-          factName: "light-color",
-          operation: "equal",
-          factValue: "red",
-          serviceId: "1.0.0.kiotp.plugins.general.lighting",
-          factStateAction: "GetLightColor",
-          params: {
-            deviceId: "Light-L2",
-          }
-        },
-      ],
-    },
-  ],
-  event: {
-    type: "Turn On Fan",
-    params: [
-      {
-        order: 0,
-        routines: [
-          {
-            serviceId: "1.0.0.kiotp.plugins.general.fan",
-            executionName: "ChangeFanState",
-            action: "ChangeFanState",
-            customExecutionData: {
-              deviceId: "Fan-F1",
-              FanState: "on",
-              metadata: {
-                RuleName: "TurnOnFanWhenLightRed",
-              }
-            },
-          },
-        ],
-      },
-    ],
-  },
-  enabled: true,
-  priority: 6,
-};
-
-
 
 broker
   .start()
@@ -162,15 +84,7 @@ broker
         "1.0.0.kiotp.plugins.general.rulesengine.AddRule",
         rule6
       );
-      await broker.call(
-        "1.0.0.kiotp.plugins.general.rulesengine.AddRule",
-        rule7
-      );
-      await broker.call(
-        "1.0.0.kiotp.plugins.general.rulesengine.AddRule",
-        rule8
-      );
-      console.log("Rule 6,7 & 8 added successfully to the rules engine");
+      console.log("Rule 6 added successfully to the rules engine");
     } catch (error) {
       console.error("Error during adding rules with the rules engine:", error);
     }
