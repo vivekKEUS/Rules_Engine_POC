@@ -64,7 +64,7 @@ export class PluginService extends Service {
         processActions: async (routineSets: IRoutineSet[], metadata: Object) => {
           for (const routineSet of routineSets) {
             if (routineSet.delay) {
-              processDelay(this.broker,routineSet.delay)
+              await processDelay(this.broker,routineSet.delay)
             }
             else if (routineSet.routines) {
               await executeRoutines(this.broker,routineSet.routines,metadata)
@@ -123,15 +123,6 @@ export class PluginService extends Service {
           group: `${this.broker.namespace}.${PluginConfig.NAME}.p2.facts.state.changed`,
           context: true, // Unless not enabled it globally
           async handler(ctx: Moleculer.Context) {
-            // @ts-ignore
-            let ruleHistory: Array<string> = ctx.meta.ruleHistory || [];
-            console.log("[Channels] Context.Meta = ", ctx.meta)
-            //@ts-ignore
-            if (ruleHistory.includes(ctx.meta.ruleName)) {
-              console.warn("Loop Detected! Already processed this event");
-              return;
-            }
-
             console.log(
               "[RulesEngine] Message received on channel p2.facts.state.changed"
             );
@@ -140,7 +131,13 @@ export class PluginService extends Service {
             this.factChangeEventHandler(ctx);
           },
         },
-        
+        "p2.task.execution.failed" :{
+          group : `${this.broker.namespace}.${PluginConfig.NAME}.p2.task.execution.failed`,
+          context: true,
+          async handler(ctx: Moleculer.Context){
+            broker.logger.info("[RulesEngine] Task Execution failed for ",ctx.params)
+          }
+        }
       },
       created: this.serviceCreated,
     });

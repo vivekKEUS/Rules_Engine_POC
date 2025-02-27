@@ -54,7 +54,7 @@ const rule6 = {
       },
       {
         order: 1,
-        delay: 5,
+        delay: 1,
       },
       {
         order: 2,

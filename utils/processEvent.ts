@@ -1,5 +1,6 @@
 import type { ServiceBroker } from "moleculer";
 import { v4 } from "uuid";
+import { AsyncDelay } from "../types";
 
 interface Document {
   // Assuming Document interface definition
@@ -86,8 +87,9 @@ const processAction = (broker: ServiceBroker, execution: IActionExecution, metad
   });
 };
 
-export const processDelay = (broker: ServiceBroker, delay: number) => {
+export const processDelay = async (broker: ServiceBroker, delay: number) => {
   broker.logger.warn("[RulesEngine] Delaying next routine by ", delay, " seconds");
+  await AsyncDelay(delay*1000)
 };
 
 export const executeRoutines = (broker: ServiceBroker, executions: IExecution[], metadata: Record<any, any>) => {
