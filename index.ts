@@ -2,10 +2,9 @@ import { ServiceBroker } from "moleculer";
 import { PluginService as RulesEningeService } from "./plugin-general-rulesengine";
 import { brokerConfig } from "./moleculer.config";
 import { FanService } from "./plugin-fan";
-import { lightService as LightService} from "./plugin-lighting";
+import { lightService as LightService } from "./plugin-lighting";
 import mongoose from "mongoose";
 const broker = new ServiceBroker(brokerConfig);
-
 
 try {
   await mongoose.connect("mongodb://localhost:27017/calendarDB", {});
@@ -29,7 +28,7 @@ const rule6 = {
           factStateAction: "GetFanState",
           params: {
             deviceId: "Fan-F1",
-          }
+          },
         },
       ],
     },
@@ -43,7 +42,8 @@ const rule6 = {
           {
             serviceId: "1.0.0.kiotp.plugins.general.lighting",
             executionName: "ChangeLightState",
-            action: "ChangeLightState",
+            executionStrategy: "durable",
+            moleculerEvent: "p2.trigger-bulb-state-change",
             customExecutionData: {
               deviceId: "Light-L2",
               LightState: "on",
@@ -53,18 +53,19 @@ const rule6 = {
       },
       {
         order: 1,
-        delay:5,
+        delay: 5,
       },
       {
+        order:2,
         serviceId: "1.0.0.kiotp.plugins.general.fan",
         executionName: "Change Fan Mode",
-        executionStrategy : "durable",
+        executionStrategy: "durable",
         moleculerEvent: "p2.trigger-fan-mode-change",
         customeExecutionData: {
           deviceId: "Fan-F1",
           FanMode: "turbo",
-        }
-      }
+        },
+      },
     ],
   },
   enabled: true,
@@ -74,7 +75,7 @@ const rule6 = {
 broker
   .start()
   .then(async () => {
-    console.log("Broker Started")
+    console.log("Broker Started");
     broker.createService(RulesEningeService);
     broker.createService(FanService);
     broker.createService(LightService);
